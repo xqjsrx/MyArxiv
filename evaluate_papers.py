@@ -2,7 +2,7 @@ import os
 import json
 from openai import OpenAI
 
-# 通义千问 API 的密钥
+# API 的密钥
 API_KEY = os.getenv("API_KEY")
 
 # 自定义的提示模板

@@ -84,9 +84,11 @@ def evaluate_papers(input_file, output_file):
             comment=paper.get('comment', ''),
             category=paper['category'],
         )
-        prompt = half_prompt + JSON_RESPONSE_TEMPLATE
+        prompt = prompt + JSON_RESPONSE_TEMPLATE
+        print(prompt)
         # 调用 API 并获取评分
         res = call_qwen_api(prompt)
+        print(res)
         if res:
             cleaned_res = clean_json_response(res)
             if cleaned_res:
@@ -115,6 +117,7 @@ def evaluate_papers(input_file, output_file):
                                 print(f"再次响应内容：{cleaned_res}")
             else:
                 print("未找到有效的 JSON 内容")
+        print(paper)
         break
 
     # 写入输出文件

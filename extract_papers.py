@@ -14,8 +14,8 @@ def remove_symbols_and_newlines(text):
     return text
 
 def decode_unicode(text):
-    # 将 Unicode 编码转换为可读字符
-    return text.encode('utf-8').decode('unicode_escape')
+    # 将 Unicode 编码转换为可读字符，使用更安全的方法
+    return text.encode('utf-8', 'surrogatepass').decode('utf-8', 'ignore')
 
 def extract_paper_info(html_file, output_file):
     print(f"Current working directory: {os.getcwd()}")

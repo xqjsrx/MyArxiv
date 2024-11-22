@@ -45,9 +45,13 @@ jobs:
       - name: Install dependencies
         run: |
           pip install beautifulsoup4
+          pip install openai
       - name: Extract paper information
         run: |
           python3 extract_papers.py
+      - name: Evaluate papers
+        run: |
+          python3 evaluate_papers.py
       - name: List files in repository
         run: ls -R
 

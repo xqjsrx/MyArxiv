@@ -1,47 +1,29 @@
 import json
 import re
-import os
-from bs4 import BeautifulSoup
 
-def clean_html(text):
-    soup = BeautifulSoup(text, 'html.parser')
-    return soup.get_text().strip()
+def remove_newlines(text):
+    # 去除字符串中的所有换行符
+    return re.sub(r'\s+', ' ', text).strip()
 
-def remove_symbols_and_newlines(text):
-    # 使用正则表达式移除标题前的符号和所有换行符
-    text = re.sub(r'^[\u2600-\u26ff\u2700-\u27bf\s]+', '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
+def process_cache_file(cache_file, output_file):
+    with open(cache_file, 'r') as f:
+        cache_data = json.load(f)
 
-def decode_unicode(text):
-    # 将 Unicode 编码转换为可读字符，使用更安全的方法
-    return text.encode('utf-8', 'surrogatepass').decode('utf-8', 'ignore')
+    # 获取最新的日期
+    latest_date = sorted(cache_data.keys(), reverse=True)[0]
+    latest_data = cache_data[latest_date]
 
-def extract_paper_info(html_file, output_file):
-    print(f"Current working directory: {os.getcwd()}")
-    print(f"Reading HTML file from: {html_file}")
-    
-    with open(html_file, "r") as f:
-        content = f.read()
+    # 合并所有大类的数据，并添加大类属性
+    merged_data = []
+    for category, papers in latest_data.items():
+        for paper in papers:
+            paper['category'] = category
+            paper['summary'] = remove_newlines(paper['summary'])
+            merged_data.append(paper)
 
-    pattern = re.compile(r'<article>\s*<details class="article-expander"(?: open="")?>\s*<summary class="article-expander-title">(.*?)</summary>\s*<div class="article-authors">(.*?)</div>\s*<div class="article-summary-box-inner">\s*<span>(.*?)</span>\s*</div>', re.DOTALL)
-    papers = []
-
-    for title, authors, abstract in pattern.findall(content):
-        title = clean_html(title)
-        title = remove_symbols_and_newlines(title)
-        title = decode_unicode(title)
-        authors = clean_html(authors)
-        authors = remove_symbols_and_newlines(authors)
-        authors = decode_unicode(authors)
-        abstract = clean_html(abstract)
-        abstract = remove_symbols_and_newlines(abstract)
-        abstract = decode_unicode(abstract)
-        papers.append({"title": title, "authors": authors, "abstract": abstract})
-
-    print(f"Writing papers to: {output_file}")
-    with open(output_file, "w") as f:
-        json.dump(papers, f, indent=2, ensure_ascii=False)
+    # 写入输出文件
+    with open(output_file, 'w') as f:
+        json.dump(merged_data, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
-    extract_paper_info("target/index.html", "target/papers.json")
+    process_cache_file("target/cache.json", "target/latest_papers.json")

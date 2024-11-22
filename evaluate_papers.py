@@ -17,7 +17,7 @@ PROMPT_TEMPLATE = """
 除了任务层面以外，还有一类论文值得关注。之前主流的论文主要使用预训练模型搭建一个系统，而近期随着多模态模型的出现，使用多模态模型（如VLM）进行DIU的工作出现了很多，他们直接训练或微调了一个视觉多模态模型进行DIU，不需要分步骤，一次实现识别，甚至可以作为聊天机器人进行问答。这可能是未来的发展趋势，这些论文证明了可以应用完全不同的技术栈在该领域内进行颠覆式的创新，值得重点关注。
 最后，那些提出这个领域内新数据集的工作值得关注。
 
-除了直接进行DIU工作的论文，一些相领域的工作也值得借鉴，比如视觉信息抽取（visual information extraction）、布局（layout）、表格（table）等。
+除了直接进行DIU工作的论文，一些相领域或关键词的工作也值得借鉴，比如视觉信息抽取（visual information extraction）、visually-rich document、布局（layout）、表格（table）等。
 
 以上是DIU领域的概述，此外，（视觉）多模态模型（VLM）、大语言模型（LLM）作为DIU的上游领域，其中的新任务、新技术的提出可能可以应用在DIU领域。其中有潜力的一条技术路线如下：目前，LLM的发展已经到了inference scaling的阶段，即通过增大推理阶段的计算量来提高模型的性能，比如chain of thought(cot)、tree of thought(tot)、contrastive decoding、gpt o1、mcts、test time training(ttt)等技术都是这一阶段的热门技术，目前这些技术主要应用于需要逻辑推理（reasoning）的领域，而我觉得这些技术可以提高VLM在DIU领域的性能，值得重点关注。
 

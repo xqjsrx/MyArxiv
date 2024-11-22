@@ -7,10 +7,11 @@ def clean_html(text):
     soup = BeautifulSoup(text, 'html.parser')
     return soup.get_text().strip()
 
-def remove_symbols(title):
-    # 使用正则表达式移除标题前的符号
-    # 匹配常见的符号和空白字符
-    return re.sub(r'^[\u2600-\u26ff\u2700-\u27bf\s]+', '', title).strip()
+def remove_symbols_and_newlines(text):
+    # 使用正则表达式移除标题前的符号和所有换行符
+    text = re.sub(r'^[\u2600-\u26ff\u2700-\u27bf\s]+', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 def extract_paper_info(html_file, output_file):
     print(f"Current working directory: {os.getcwd()}")
@@ -24,9 +25,11 @@ def extract_paper_info(html_file, output_file):
 
     for title, authors, abstract in pattern.findall(content):
         title = clean_html(title)
-        title = remove_symbols(title)
+        title = remove_symbols_and_newlines(title)
         authors = clean_html(authors)
+        authors = remove_symbols_and_newlines(authors)
         abstract = clean_html(abstract)
+        abstract = remove_symbols_and_newlines(abstract)
         papers.append({"title": title, "authors": authors, "abstract": abstract})
 
     print(f"Writing papers to: {output_file}")

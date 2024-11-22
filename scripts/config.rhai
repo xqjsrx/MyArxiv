@@ -1,6 +1,6 @@
-let titles_type = ["Dataset", "Survey", "Review", "Overview"];
-let titles_model = ["BERT", "GPT", "Transformer"];
-let titles_method = ["Pre-train", "Pretrain", "Prompt", "Self-Supervised"];
+let titles_type = ["Dataset", "Survey", "Review", "Overview", "Document", "Benchmark"];
+let titles_model = ["GPT", "Transformer", "o1", "Llama", "Mistral", "Qwen", "Llava", "Diffusion"];
+let titles_method = ["Pre-train", "Pretrain", "Prompt", "Self-Supervised", "Reinforcement Learning", "Chain of", "Cot", "Contrastive", "Reward Model", "RL", "Reasoning", "MCTS", "of Tree", "Vision", "Judge", "Agent", "Ocr", "Understanding", "Context", "Extraction", "Information", "Relation", "Entity"];
 let titles =  titles_model + titles_method + titles_type;
 let authors_array = ["Yann LeCun", "Geoffrey Hinton", "Yoshua Bengio"];
 

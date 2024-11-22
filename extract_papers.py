@@ -13,6 +13,10 @@ def remove_symbols_and_newlines(text):
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
+def decode_unicode(text):
+    # 将 Unicode 编码转换为可读字符
+    return text.encode('utf-8').decode('unicode_escape')
+
 def extract_paper_info(html_file, output_file):
     print(f"Current working directory: {os.getcwd()}")
     print(f"Reading HTML file from: {html_file}")
@@ -26,15 +30,18 @@ def extract_paper_info(html_file, output_file):
     for title, authors, abstract in pattern.findall(content):
         title = clean_html(title)
         title = remove_symbols_and_newlines(title)
+        title = decode_unicode(title)
         authors = clean_html(authors)
         authors = remove_symbols_and_newlines(authors)
+        authors = decode_unicode(authors)
         abstract = clean_html(abstract)
         abstract = remove_symbols_and_newlines(abstract)
+        abstract = decode_unicode(abstract)
         papers.append({"title": title, "authors": authors, "abstract": abstract})
 
     print(f"Writing papers to: {output_file}")
     with open(output_file, "w") as f:
-        json.dump(papers, f, indent=2)
+        json.dump(papers, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
     extract_paper_info("target/index.html", "target/papers.json")

@@ -1,6 +1,11 @@
 import json
 import re
 import os
+from bs4 import BeautifulSoup
+
+def clean_html(text):
+    soup = BeautifulSoup(text, 'html.parser')
+    return soup.get_text().strip()
 
 def extract_paper_info(html_file, output_file):
     print(f"Current working directory: {os.getcwd()}")
@@ -13,13 +18,12 @@ def extract_paper_info(html_file, output_file):
     papers = []
 
     for title, authors, abstract in pattern.findall(content):
-        title = title.strip()
-        authors = re.sub(r"<a[^>]*>", "", authors).strip()  # 移除作者链接标签
-        abstract = abstract.strip()
+        title = clean_html(title)
+        authors = clean_html(authors)
+        abstract = clean_html(abstract)
         papers.append({"title": title, "authors": authors, "abstract": abstract})
 
     print(f"Writing papers to: {output_file}")
-    print(papers)
     with open(output_file, "w") as f:
         json.dump(papers, f, indent=2)
 

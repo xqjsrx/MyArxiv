@@ -19,7 +19,8 @@ def process_cache_file(cache_file, output_file):
         for paper in papers:
             paper['category'] = category
             paper['title'] = remove_newlines(paper['title'])  # 去除 title 中的换行符
-            paper['comment'] = remove_newlines(paper['comment'])
+            if 'comment' in paper and paper['comment'] is not None:
+                paper['comment'] = remove_newlines(paper['comment'])
             paper['abstract'] = remove_newlines(paper['summary'])
             del paper['summary']  # 删除原来的 summary 字段
             merged_data.append(paper)

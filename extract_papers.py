@@ -18,7 +18,8 @@ def process_cache_file(cache_file, output_file):
     for category, papers in latest_data.items():
         for paper in papers:
             paper['category'] = category
-            paper['summary'] = remove_newlines(paper['summary'])
+            paper['abstract'] = remove_newlines(paper['summary'])
+            del paper['summary']  # 删除原来的 summary 字段
             merged_data.append(paper)
 
     # 写入输出文件

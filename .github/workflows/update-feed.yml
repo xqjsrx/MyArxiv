@@ -42,6 +42,9 @@ jobs:
       - name: Build rss
         run: ./arxivfeed
         
+      - name: Install dependencies
+        run: |
+          pip install beautifulsoup4
       - name: Extract paper information
         run: |
           python3 extract_papers.py

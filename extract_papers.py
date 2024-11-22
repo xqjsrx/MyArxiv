@@ -24,4 +24,4 @@ def extract_paper_info(html_file, output_file):
         json.dump(papers, f, indent=2)
 
 if __name__ == "__main__":
-    extract_paper_info("target/index.html", "papers.json")
+    extract_paper_info("target/index.html", "target/papers.json")

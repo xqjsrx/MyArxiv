@@ -125,4 +125,5 @@ def evaluate_papers(input_file, output_file):
         json.dump(papers, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
+    print(API_KEY)
     evaluate_papers("target/latest_papers.json", "target/evaluated_papers.json")

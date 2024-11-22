@@ -9,7 +9,8 @@ def clean_html(text):
 
 def remove_symbols(title):
     # 使用正则表达式移除标题前的符号
-    return re.sub(r'^[\u2600-\u26ff]+', '', title).strip()
+    # 匹配常见的符号和空白字符
+    return re.sub(r'^[\u2600-\u26ff\u2700-\u27bf\s]+', '', title).strip()
 
 def extract_paper_info(html_file, output_file):
     print(f"Current working directory: {os.getcwd()}")

@@ -3,7 +3,7 @@ import json
 from openai import OpenAI
 
 # API 的密钥
-API_KEY = "sk-ddc0a75060254ef9a8ae495a5f6adc8e"
+API_KEY = os.getenv("API_KEY")
 
 # 自定义的提示模板
 PROMPT_TEMPLATE = """

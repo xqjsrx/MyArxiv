@@ -44,7 +44,7 @@ for article in articles:
             abstract_chip = soup.new_tag('span', **{'class': 'chip'})
             abstract_chip.string = 'abstract'
             abstract_text = soup.new_tag('span')
-            abstract_text.string = f': {abstract}'
+            abstract_text.string = abstract
             
             # 替换第一个 span 的内容
             first_span = first_summary_box.find('span')
@@ -54,14 +54,14 @@ for article in articles:
         
         # 创建新的理由和摘要元素
         reason_span = soup.new_tag('span', **{'class': 'chip'})
-        reason_span.string = 'reason:'
+        reason_span.string = 'reason'
         reason_text = soup.new_tag('span')
-        reason_text.string = f' {reason}'
+        reason_text.string = reason
         
         summary_span = soup.new_tag('span', **{'class': 'chip'})
-        summary_span.string = 'summary:'
+        summary_span.string = 'summary'
         summary_text = soup.new_tag('span')
-        summary_text.string = f' {summary}'
+        summary_text.string = summary
         
         # 创建一个新的 div 元素来包含理由和摘要
         summary_box_inner = soup.new_tag('div', **{'class': 'article-summary-box-inner'})

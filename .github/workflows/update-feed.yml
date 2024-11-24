@@ -57,6 +57,9 @@ jobs:
       - name: Inject html
         run: |
           python3 inject_html.py
+      - name: Sort Papers
+        run: |
+          sort_papers.py
       - name: List files in repository
         run: ls -R
 

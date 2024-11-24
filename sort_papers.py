@@ -53,12 +53,13 @@ if latest_day_container:
 
                 # 获取 details-content 容器
                 details_content = category.find('div', class_='details-content')
-                print(details_content)
+                # print(details_content)
                 if details_content:      
                     # 将排序后的论文重新插入到 details-content 容器中
                     for score, article in scored_articles:
                         details_content.append(article)
                         print(f"Inserted article with score {score}: {article.find('summary').text.strip()}")
+                print(details_content)
 
 # 将修改后的 HTML 内容写回文件
 with open("target/index.html", 'w') as f:

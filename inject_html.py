@@ -13,7 +13,7 @@ with open("target/index.html", 'r') as f:
 soup = BeautifulSoup(html_content, 'html.parser')
 
 # 创建一个字典，用于快速查找论文的评分、理由和摘要
-papers_dict = {paper['id']: paper for paper in evaluated_papers}
+papers_dict = {paper['id']: paper for paper in evaluated_papers if all(key in paper for key in ['id', 'score', 'reason', 'summary'])}
 
 # 查找所有文章的详细信息部分
 articles = soup.find_all('details', class_='article-expander')
@@ -25,9 +25,9 @@ for article in articles:
     # 根据链接查找对应的论文信息
     if link in papers_dict:
         paper_info = papers_dict[link]
-        score = paper_info['score']
-        reason = paper_info['reason']
-        summary = paper_info['summary']
+        score = paper_info.get('score', 'N/A')
+        reason = paper_info.get('reason', 'N/A')
+        summary = paper_info.get('summary', 'N/A')
         
         # 创建新的评分、理由和摘要元素
         score_element = soup.new_tag('div', **{'class': 'article-score'})

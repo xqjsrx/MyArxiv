@@ -1,4 +1,4 @@
-import json
+import re
 from bs4 import BeautifulSoup
 
 # 读取 HTML 文件
@@ -27,8 +27,13 @@ if latest_day_container:
             scored_articles = []
             for article in articles:
                 score_span = article.find('span', class_='chip')
-                if score_span and score_span.text.isdigit():
-                    score = int(score_span.text)
+                if score_span:
+                    score_text = score_span.text.strip()
+                    if score_text.isdigit():
+                        score = int(score_text)
+                    else:
+                        score = 0  # 如果不是纯数字，默认为0分
+                        print(f"No valid score found for article: {article.find('summary').text.strip()}, setting score to 0")
                 else:
                     score = 0  # 如果没有评分，默认为0分
                     print(f"No score found for article: {article.find('summary').text.strip()}, setting score to 0")

@@ -15,38 +15,40 @@ if latest_day_container:
         print(f"Processing papers for date: {date_div.text.strip()}")
 
     # 查找所有类别
-    categories = latest_day_container.find_all('summary')
+    categories = latest_day_container.find_all('details')
     for category in categories:
-        category_name = category.text.strip()
-        print(f"Processing category: {category_name}")
-        
-        # 查找该类别下的所有论文
-        articles = category.find_next_siblings('article')
-        if articles:
-            scored_articles = []
-            for article in articles:
-                score_span = article.find('span', class_='chip')
-                if score_span:
-                    score_text = score_span.text.strip()
-                    if score_text.isdigit():
-                        score = int(score_text)
+        category_summary = category.find('summary')
+        if category_summary:
+            category_name = category_summary.text.strip()
+            print(f"Processing category: {category_name}")
+            
+            # 查找该类别下的所有论文
+            articles = category.find_all_next('article')
+            if articles:
+                scored_articles = []
+                for article in articles:
+                    score_span = article.find('span', class_='chip')
+                    if score_span:
+                        score_text = score_span.text.strip()
+                        if score_text.isdigit():
+                            score = int(score_text)
+                        else:
+                            score = 0  # 如果不是纯数字，默认为0分
                     else:
-                        score = 0  # 如果不是纯数字，默认为0分
-                else:
-                    score = 0  # 如果没有评分，默认为0分
+                        score = 0  # 如果没有评分，默认为0分
+                    
+                    title = article.find('summary').text.strip()
+                    scored_articles.append((score, article))
+                    print(f"Added article with score {score}: {title}")
                 
-                title = article.find('summary').text.strip()
-                scored_articles.append((score, article))
-                print(f"Added article with score {score}: {title}")
-            
-            # 按评分从高到低排序
-            scored_articles.sort(key=lambda x: x[0], reverse=True)
-            print(f"Sorted articles for category {category_name}: {[article.find('summary').text.strip() for _, article in scored_articles]}")
-            
-            # 将排序后的论文重新插入到类别下
-            for score, article in scored_articles:
-                category.insert_after(article)
-                print(f"Inserted article with score {score}: {article.find('summary').text.strip()}")
+                # 按评分从高到低排序
+                scored_articles.sort(key=lambda x: x[0], reverse=True)
+                print(f"Sorted articles for category {category_name}: {[article.find('summary').text.strip() for _, article in scored_articles]}")
+                
+                # 将排序后的论文重新插入到类别下
+                for score, article in scored_articles:
+                    category.insert_after(article)
+                    print(f"Inserted article with score {score}: {article.find('summary').text.strip()}")
 
 # 将修改后的 HTML 内容写回文件
 with open("target/index.html", 'w') as f:

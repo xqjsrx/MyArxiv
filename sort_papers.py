@@ -23,7 +23,7 @@ if latest_day_container:
             print(f"Processing category: {category_name}")
             
             # 查找该类别下的所有论文
-            articles = category.find_all_next('article')
+            articles = category.find_all('article')
             if articles:
                 scored_articles = []
                 for article in articles:

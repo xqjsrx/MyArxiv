@@ -37,6 +37,20 @@ for article in articles:
             title_summary.insert(0, score_span)
             title_summary.insert(1, ' ')
         
+        # 处理摘要
+        first_summary_box = article.find('div', class_='article-summary-box-inner')
+        if first_summary_box:
+            abstract_span = soup.new_tag('span', **{'class': 'chip'})
+            abstract_span.string = 'abstract:'
+            abstract_text = soup.new_tag('span')
+            abstract_text.string = f' {paper_info["abstract"]}'
+            
+            # 替换第一个 span 的内容
+            first_span = first_summary_box.find('span')
+            if first_span:
+                first_span.replace_with(abstract_span)
+                first_summary_box.insert(1, abstract_text)
+        
         # 创建新的理由和摘要元素
         reason_span = soup.new_tag('span', **{'class': 'chip'})
         reason_span.string = 'reason:'
@@ -57,7 +71,6 @@ for article in articles:
         summary_box_inner.append(summary_text)
         
         # 将新的 div 元素插入到文章的详细信息部分的第一个 div.article-summary-box-inner 上面
-        first_summary_box = article.find('div', class_='article-summary-box-inner')
         if first_summary_box:
             first_summary_box.insert_before(summary_box_inner)
 

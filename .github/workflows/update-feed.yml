@@ -54,6 +54,9 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python3 evaluate_papers.py
+      - name: Inject html
+        run: |
+          python3 inject_html.py
       - name: List files in repository
         run: ls -R
 

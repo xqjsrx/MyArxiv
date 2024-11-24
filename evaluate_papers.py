@@ -118,7 +118,6 @@ def evaluate_papers(input_file, output_file):
             else:
                 print("未找到有效的 JSON 内容")
         print(paper)
-        break
 
     # 写入输出文件
     with open(output_file, 'w') as f:

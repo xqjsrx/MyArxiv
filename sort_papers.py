@@ -1,4 +1,3 @@
-import re
 from bs4 import BeautifulSoup
 
 # 读取 HTML 文件
@@ -33,13 +32,12 @@ if latest_day_container:
                         score = int(score_text)
                     else:
                         score = 0  # 如果不是纯数字，默认为0分
-                        print(f"No valid score found for article: {article.find('summary').text.strip()}, setting score to 0")
                 else:
                     score = 0  # 如果没有评分，默认为0分
-                    print(f"No score found for article: {article.find('summary').text.strip()}, setting score to 0")
                 
+                title = article.find('summary').text.strip()
                 scored_articles.append((score, article))
-                print(f"Added article with score {score}: {article.find('summary').text.strip()}")
+                print(f"Added article with score {score}: {title}")
             
             # 按评分从高到低排序
             scored_articles.sort(key=lambda x: x[0], reverse=True)

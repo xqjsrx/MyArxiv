@@ -45,12 +45,6 @@ if latest_day_container:
                 scored_articles.sort(key=lambda x: x[0], reverse=True)
                 print(f"Sorted articles for category {category_name}: {[article.find('summary').text.strip() for _, article in scored_articles]}")
                 
-                # # 将排序后的论文重新插入到类别下
-                # for score, article in scored_articles:
-                #     category.insert_after(article)
-                #     print(f"Inserted article with score {score}: {article.find('summary').text.strip()}")
-
-
                 # 获取 details-content 容器
                 details_content = category.find('div', class_='details-content')
                 # print(details_content)

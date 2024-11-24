@@ -46,11 +46,12 @@ for article in articles:
             abstract_text = soup.new_tag('span')
             abstract_text.string = abstract
             
-            # 替换第一个 span 的内容
-            first_span = first_summary_box.find('span')
-            if first_span:
-                first_span.replace_with(abstract_chip)
-                first_summary_box.insert(1, abstract_text)
+            # 清空第一个 div 的内容
+            first_summary_box.clear()
+            
+            # 插入摘要标签和摘要文本
+            first_summary_box.insert(0, abstract_chip)
+            first_summary_box.insert(1, abstract_text)
         
         # 创建新的理由和摘要元素
         reason_span = soup.new_tag('span', **{'class': 'chip'})

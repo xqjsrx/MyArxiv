@@ -29,21 +29,24 @@ for article in articles:
         reason = paper_info.get('reason', 'N/A')
         summary = paper_info.get('summary', 'N/A')
         
-        # 更新标题，将评分放在最前面
+        # 更新标题，将评分放在最前面，并用 <span class="chip"> 包裹
         title_summary = article.find('summary', class_='article-expander-title')
         if title_summary:
-            title_summary.string = f'Score: {score} {title_summary.text.strip()}'
+            score_span = soup.new_tag('span', **{'class': 'chip'})
+            score_span.string = f'{score}'
+            title_summary.insert(0, score_span)
+            title_summary.insert(1, ' ')
         
         # 创建新的理由和摘要元素
         reason_span = soup.new_tag('span', **{'class': 'chip'})
-        reason_span.string = 'reason'
+        reason_span.string = 'reason:'
         reason_text = soup.new_tag('span')
-        reason_text.string = reason
+        reason_text.string = f' {reason}'
         
         summary_span = soup.new_tag('span', **{'class': 'chip'})
-        summary_span.string = 'summary'
+        summary_span.string = 'summary:'
         summary_text = soup.new_tag('span')
-        summary_text.string = summary
+        summary_text.string = f' {summary}'
         
         # 创建一个新的 div 元素来包含理由和摘要
         summary_box_inner = soup.new_tag('div', **{'class': 'article-summary-box-inner'})
@@ -53,8 +56,10 @@ for article in articles:
         summary_box_inner.append(summary_span)
         summary_box_inner.append(summary_text)
         
-        # 将新的 div 元素插入到文章的详细信息部分
-        article.append(summary_box_inner)
+        # 将新的 div 元素插入到文章的详细信息部分的第一个 div.article-summary-box-inner 上面
+        first_summary_box = article.find('div', class_='article-summary-box-inner')
+        if first_summary_box:
+            first_summary_box.insert_before(summary_box_inner)
 
 # 将修改后的 HTML 内容写回文件
 with open("target/index.html", 'w') as f:

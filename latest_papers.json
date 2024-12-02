@@ -1,0 +1,93 @@
+[
+  {
+    "id": "http://arxiv.org/abs/2411.09429v3",
+    "updated": "2024-11-29T05:10:56Z",
+    "published": "2024-11-14T13:25:04Z",
+    "title": "AI-driven inverse design of materials: Past, present and future",
+    "authors": [
+      "Xiao-Qi Han",
+      "Xin-De Wang",
+      "Meng-Yuan Xu",
+      "Zhen Feng",
+      "Bo-Wen Yao",
+      "Peng-Jie Guo",
+      "Ze-Feng Gao",
+      "Zhong-Yi Lu"
+    ],
+    "pdf_url": "https://arxiv.org/pdf/2411.09429v3.pdf",
+    "comment": "44 pages, 6 figures, 2 tables",
+    "category": "Artificial Intelligence",
+    "abstract": "The discovery of advanced materials is the cornerstone of human technological development and progress. The structures of materials and their corresponding properties are essentially the result of a complex interplay of multiple degrees of freedom such as lattice, charge, spin, symmetry, and topology. This poses significant challenges for the inverse design methods of materials. Humans have long explored new materials through a large number of experiments and proposed corresponding theoretical systems to predict new material properties and structures. With the improvement of computational power, researchers have gradually developed various electronic structure calculation methods, such as the density functional theory and high-throughput computational methods. Recently, the rapid development of artificial intelligence technology in the field of computer science has enabled the effective characterization of the implicit association between material properties and structures, thus opening up an efficient paradigm for the inverse design of functional materials. A significant progress has been made in inverse design of materials based on generative and discriminative models, attracting widespread attention from researchers. Considering this rapid technological progress, in this survey, we look back on the latest advancements in AI-driven inverse design of materials by introducing the background, key findings, and mainstream technological development routes. In addition, we summarize the remaining issues for future directions. This survey provides the latest overview of AI-driven inverse design of materials, which can serve as a useful resource for researchers."
+  },
+  {
+    "id": "http://arxiv.org/abs/2411.17515v3",
+    "updated": "2024-11-29T09:44:13Z",
+    "published": "2024-11-26T15:26:06Z",
+    "title": "SuperMat: Physically Consistent PBR Material Estimation at Interactive Rates",
+    "authors": [
+      "Yijia Hong",
+      "Yuan-Chen Guo",
+      "Ran Yi",
+      "Yulong Chen",
+      "Yan-Pei Cao",
+      "Lizhuang Ma"
+    ],
+    "pdf_url": "https://arxiv.org/pdf/2411.17515v3.pdf",
+    "comment": "https://hyj542682306.github.io/SuperMat/",
+    "category": "Computer Vision and Pattern Recognition",
+    "abstract": "Decomposing physically-based materials from images into their constituent properties remains challenging, particularly when maintaining both computational efficiency and physical consistency. While recent diffusion-based approaches have shown promise, they face substantial computational overhead due to multiple denoising steps and separate models for different material properties. We present SuperMat, a single-step framework that achieves high-quality material decomposition with one-step inference. This enables end-to-end training with perceptual and re-render losses while decomposing albedo, metallic, and roughness maps at millisecond-scale speeds. We further extend our framework to 3D objects through a UV refinement network, enabling consistent material estimation across viewpoints while maintaining efficiency. Experiments demonstrate that SuperMat achieves state-of-the-art PBR material decomposition quality while reducing inference time from seconds to milliseconds per image, and completes PBR material estimation for 3D objects in approximately 3 seconds. The project page is at https://hyj542682306.github.io/SuperMat/."
+  },
+  {
+    "id": "http://arxiv.org/abs/2411.17217v3",
+    "updated": "2024-11-29T04:08:20Z",
+    "published": "2024-11-26T08:33:25Z",
+    "title": "Promptable Anomaly Segmentation with SAM Through Self-Perception Tuning",
+    "authors": [
+      "Hui-Yue Yang",
+      "Hui Chen",
+      "Ao Wang",
+      "Kai Chen",
+      "Zijia Lin",
+      "Yongliang Tang",
+      "Pengcheng Gao",
+      "Yuming Quan",
+      "Jungong Han",
+      "Guiguang Ding"
+    ],
+    "pdf_url": "https://arxiv.org/pdf/2411.17217v3.pdf",
+    "comment": null,
+    "category": "Computer Vision and Pattern Recognition",
+    "abstract": "Segment Anything Model (SAM) has made great progress in anomaly segmentation tasks due to its impressive generalization ability. However, existing methods that directly apply SAM through prompting often overlook the domain shift issue, where SAM performs well on natural images but struggles in industrial scenarios. Parameter-Efficient Fine-Tuning (PEFT) offers a promising solution, but it may yield suboptimal performance by not adequately addressing the perception challenges during adaptation to anomaly images. In this paper, we propose a novel Self-Perceptinon Tuning (SPT) method, aiming to enhance SAM's perception capability for anomaly segmentation. The SPT method incorporates a self-drafting tuning strategy, which generates an initial coarse draft of the anomaly mask, followed by a refinement process. Additionally, a visual-relation-aware adapter is introduced to improve the perception of discriminative relational information for mask generation. Extensive experimental results on several benchmark datasets demonstrate that our SPT method can significantly outperform baseline methods, validating its effectiveness. Models and codes will be available online."
+  },
+  {
+    "id": "http://arxiv.org/abs/2411.18296v2",
+    "updated": "2024-11-29T12:26:46Z",
+    "published": "2024-11-27T12:37:03Z",
+    "title": "HUPE: Heuristic Underwater Perceptual Enhancement with Semantic Collaborative Learning",
+    "authors": [
+      "Zengxi Zhang",
+      "Zhiying Jiang",
+      "Long Ma",
+      "Jinyuan Liu",
+      "Xin Fan",
+      "Risheng Liu"
+    ],
+    "pdf_url": "https://arxiv.org/pdf/2411.18296v2.pdf",
+    "comment": "22 pages, 21 figures",
+    "category": "Computer Vision and Pattern Recognition",
+    "abstract": "Underwater images are often affected by light refraction and absorption, reducing visibility and interfering with subsequent applications. Existing underwater image enhancement methods primarily focus on improving visual quality while overlooking practical implications. To strike a balance between visual quality and application, we propose a heuristic invertible network for underwater perception enhancement, dubbed HUPE, which enhances visual quality and demonstrates flexibility in handling other downstream tasks. Specifically, we introduced an information-preserving reversible transformation with embedded Fourier transform to establish a bidirectional mapping between underwater images and their clear images. Additionally, a heuristic prior is incorporated into the enhancement process to better capture scene information. To further bridge the feature gap between vision-based enhancement images and application-oriented images, a semantic collaborative learning module is applied in the joint optimization process of the visual enhancement task and the downstream task, which guides the proposed enhancement model to extract more task-oriented semantic features while obtaining visually pleasing images. Extensive experiments, both quantitative and qualitative, demonstrate the superiority of our HUPE over state-of-the-art methods. The source code is available at https://github.com/ZengxiZhang/HUPE."
+  },
+  {
+    "id": "http://arxiv.org/abs/2411.17593v2",
+    "updated": "2024-11-29T14:41:48Z",
+    "published": "2024-11-26T17:01:27Z",
+    "title": "What Differentiates Educational Literature? A Multimodal Fusion Approach of Transformers and Computational Linguistics",
+    "authors": [
+      "Jordan J. Bird"
+    ],
+    "pdf_url": "https://arxiv.org/pdf/2411.17593v2.pdf",
+    "comment": null,
+    "category": "Computation and Language",
+    "abstract": "The integration of new literature into the English curriculum remains a challenge since educators often lack scalable tools to rapidly evaluate readability and adapt texts for diverse classroom needs. This study proposes to address this gap through a multimodal approach that combines transformer-based text classification with linguistic feature analysis to align texts with UK Key Stages. Eight state-of-the-art Transformers were fine-tuned on segmented text data, with BERT achieving the highest unimodal F1 score of 0.75. In parallel, 500 deep neural network topologies were searched for the classification of linguistic characteristics, achieving an F1 score of 0.392. The fusion of these modalities shows a significant improvement, with every multimodal approach outperforming all unimodal models. In particular, the ELECTRA Transformer fused with the neural network achieved an F1 score of 0.996. Unimodal and multimodal approaches are shown to have statistically significant differences in all validation metrics (accuracy, precision, recall, F1 score) except for inference time. The proposed approach is finally encapsulated in a stakeholder-facing web application, providing non-technical stakeholder access to real-time insights on text complexity, reading difficulty, curriculum alignment, and recommendations for learning age range. The application empowers data-driven decision making and reduces manual workload by integrating AI-based recommendations into lesson planning for English literature."
+  }
+]

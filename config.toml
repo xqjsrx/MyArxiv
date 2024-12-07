@@ -4,22 +4,22 @@ cache_url = "https://xqjsrx.github.io/MyArxiv/cache.json"
 
 
 [[sources]]
-limit = 150
+limit = 500
 category = "cs.AI"
 title = "Artificial Intelligence"
 
 [[sources]]
-limit = 150
+limit = 500
 category = "cs.CV"
 title = "Computer Vision and Pattern Recognition"
 
 [[sources]]
-limit = 150
+limit = 500
 category = "cs.LG"
 title = "Machine Learning"
 
 [[sources]]
-limit = 150
+limit = 500
 category = "cs.CL"
 title = "Computation and Language"
 

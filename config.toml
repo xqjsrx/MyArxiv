@@ -13,10 +13,10 @@ limit = 500
 category = "cs.CV"
 title = "Computer Vision and Pattern Recognition"
 
-[[sources]]
-limit = 500
-category = "cs.LG"
-title = "Machine Learning"
+# [[sources]]
+# limit = 500
+# category = "cs.LG"
+# title = "Machine Learning"
 
 [[sources]]
 limit = 500

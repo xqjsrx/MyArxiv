@@ -53,7 +53,7 @@ def call_qwen_api(prompt):
         )
 
         completion = client.chat.completions.create(
-            model="qwen-turbo-latest",  # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+            model="qwen-flash",  # 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
             messages=[
                 {'role': 'system', 'content': 'You are a helpful assistant.'},
                 {'role': 'user', 'content': prompt}

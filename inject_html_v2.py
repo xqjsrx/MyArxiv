@@ -28,7 +28,7 @@ STYLE_ROW_DIV = (
 
 # 2. 标签样式
 STYLE_LABEL_FIXED = (
-    "width: 100px; "       
+    "width: 80px; "       
     "justify-content: center; " 
     "flex-shrink: 0; "     
     "margin-right: 15px; " 
@@ -51,10 +51,11 @@ STYLE_LINKS_CAPSULE = (
     "align-items: center; "
     "margin-right: 10px; "
     "padding: 2px 8px; "
-    "background: var(--nord04); " # 使用浅灰色背景区分
-    "color: var(--nord00); "
+    "background: var(--nord08); " # [修改] 灰色 -> 青色
+    "color: var(--nord00); "      # 深色图标
     "border-radius: 4px;"
 )
+
 
 # ----------------- 辅助函数 -----------------
 

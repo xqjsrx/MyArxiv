@@ -15,130 +15,186 @@ soup = BeautifulSoup(html_content, 'html.parser')
 scored_papers = [p for p in evaluated_papers if 'score' in p and isinstance(p['score'], int)]
 scored_papers.sort(key=lambda x: x['score'], reverse=True)
 
-# 辅助函数：创建统一格式的 'Label + Content' 行
-def create_row_with_label(soup, label_text, content_text):
-    if not content_text or content_text == "N/A":
+# ================== 样式定义 ==================
+# 使用 Flexbox 实现左侧 Label 固定宽度，右侧内容自适应
+# Label 宽度固定为 110px，右对齐，增加留白
+
+STYLE_ROW = "display: flex; padding: 8px 0; border-bottom: 1px dashed var(--nord03); align-items: baseline;"
+STYLE_LAST_ROW = "display: flex; padding: 8px 0; align-items: baseline;" # 最后一行不要下划线
+
+# Label 样式：固定宽度，右对齐，字体颜色偏淡
+STYLE_LABEL_COL = "flex: 0 0 130px; text-align: right; padding-right: 15px; color: var(--nord09); font-weight: bold; font-size: 0.9em;"
+
+# Content 样式：占据剩余空间
+STYLE_CONTENT_COL = "flex: 1; color: var(--body-color); line-height: 1.6;"
+
+# 分数样式：大号数字，醒目颜色
+STYLE_BIG_SCORE = "font-size: 2.2em; font-weight: 800; color: var(--nord0B); line-height: 1; margin-right: 15px;"
+
+# 标题样式
+STYLE_TITLE = "font-size: 1.3em; font-weight: bold; color: var(--nord06); line-height: 1.3;"
+
+# 发表信息 Badge
+STYLE_PUB_BADGE = "display: inline-block; font-size: 0.7em; padding: 2px 6px; border-radius: 4px; background: var(--nord0E); color: var(--nord01); vertical-align: middle; margin-left: 8px; font-weight: bold;"
+
+
+def create_row(soup, label_text, content_html, is_last=False):
+    """
+    创建一行：左边是 Label，右边是 Content
+    content_html 可以是字符串，也可以是 Tag 对象
+    """
+    if not content_html or content_html == "N/A":
         return None
         
-    div = soup.new_tag('div', **{'class': 'article-summary-box-inner', 'style': 'margin-top: 6px;'})
+    div = soup.new_tag('div', **{'style': STYLE_LAST_ROW if is_last else STYLE_ROW})
     
-    # Label: 使用原生 class="chip"
-    label = soup.new_tag('span', **{'class': 'chip'})
+    # Left Column (Label)
+    label = soup.new_tag('div', **{'style': STYLE_LABEL_COL})
     label.string = label_text
     div.append(label)
     
-    # Content: 不加 style，跟随主题
-    content = soup.new_tag('span', **{'style': 'margin-left: 8px;'})
-    content.string = str(content_text)
-    div.append(content)
+    # Right Column (Content)
+    content_div = soup.new_tag('div', **{'style': STYLE_CONTENT_COL})
     
+    if isinstance(content_html, str):
+        content_div.string = content_html
+    else:
+        content_div.append(content_html)
+        
+    div.append(content_div)
     return div
 
-# ----------------- 构建页面 -----------------
+# ================== 构建页面 ==================
 
 if scored_papers:
-    # 容器边框颜色最好还是指定一下，不然可能看不出来，这里用了 var(--nord08) 即原本的主题色
-    top_section = soup.new_tag('section', **{'class': 'day-container', 'style': 'margin-top: 20px; border: 2px solid var(--nord08);'})
+    # 外层容器：加一点内边距和圆角，让它看起来更像一个周报卡片
+    top_section = soup.new_tag('section', **{'class': 'day-container', 'style': 'margin-top: 20px; border: 2px solid var(--nord08); border-radius: 8px; overflow: hidden;'})
     
-    # 头部：颜色跟随 .date 类
-    header_div = soup.new_tag('div', **{'class': 'date', 'style': 'padding-bottom: 15px; border-bottom: 1px solid var(--nord04); margin-bottom: 15px;'})
+    # 大标题
+    header_div = soup.new_tag('div', **{'class': 'date', 'style': 'padding: 15px; background: var(--nord01); border-bottom: 1px solid var(--nord03);'})
     header_div.string = f"🏆 Weekly Top Picks ({len(scored_papers)} Papers)"
     top_section.append(header_div)
 
     for paper in scored_papers:
-        article = soup.new_tag('article', **{'style': 'margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--nord03);'})
+        # 每篇论文的卡片容器
+        article = soup.new_tag('article', **{'style': 'padding: 20px; border-bottom: 4px solid var(--nord00); background: var(--nord01);'})
         # 默认展开
-        details = soup.new_tag('details', **{'class': 'article-expander', 'open': 'true'})
+        details = soup.new_tag('details', **{'class': 'article-expander', 'open': 'true', 'style': 'border: none; padding: 0;'})
         
-        # === 第1行：Score | Title | Publication ===
-        summary_tag = soup.new_tag('summary', **{'class': 'article-expander-title', 'style': 'display: flex; align-items: baseline; flex-wrap: wrap;'})
+        # --- 头部区域 (Score + Title) ---
+        # summary 标签去除默认样式，自定义 Flex 布局
+        summary_tag = soup.new_tag('summary', **{'class': 'article-expander-title', 'style': 'display: flex; align-items: flex-start; margin-bottom: 15px;'})
         
-        # Score (使用 chip 样式，手动加个背景色区分，或者直接用默认 chip)
-        # 为了突出分数，这里保留一点点自定义背景，也可以删掉 style 变成默认 chip
-        score_span = soup.new_tag('span', **{'class': 'chip', 'style': 'background: var(--nord0B); color: white; margin-right: 8px;'})
-        score_span.string = str(paper['score'])
-        summary_tag.append(score_span)
+        # 1. Big Score (Left)
+        score_div = soup.new_tag('div', **{'style': STYLE_BIG_SCORE})
+        score_div.string = str(paper['score'])
+        summary_tag.append(score_div)
         
-        # Title
-        title_span = soup.new_tag('span', **{'style': 'font-size: 1.1em; margin-right: 10px; font-weight: bold;'})
-        title_span.string = paper['title']
-        summary_tag.append(title_span)
+        # 2. Title Block (Right)
+        title_block = soup.new_tag('div', **{'style': 'flex: 1;'})
         
-        # Publication (Extracted by AI)
+        # Title Text
+        title_text = soup.new_tag('div', **{'style': STYLE_TITLE})
+        title_text.string = paper['title']
+        
+        # Publication Badge (If exists)
         if paper.get('publication') and paper['publication'] != "N/A":
-            # 使用默认 chip 样式
-            pub_span = soup.new_tag('span', **{'class': 'chip'})
+            pub_span = soup.new_tag('span', **{'style': STYLE_PUB_BADGE})
             pub_span.string = paper['publication']
-            summary_tag.append(pub_span)
-            
-        details.append(summary_tag)
-
-        # === 第2行：Links | Authors ===
-        # 使用 article-authors 类，保持原生颜色
-        meta_div = soup.new_tag('div', **{'class': 'article-authors', 'style': 'margin: 5px 0; display: flex; align-items: center;'})
+            title_text.append(pub_span)
         
-        # Link Logic
+        title_block.append(title_text)
+        
+        # Authors & Links (Sub-header)
+        meta_div = soup.new_tag('div', **{'style': 'margin-top: 8px; font-size: 0.9em; color: var(--nord03); display: flex; align-items: center; flex-wrap: wrap;'})
+        
+        # Links
         abs_link = paper['id']
         pdf_link = abs_link.replace('/abs/', '/pdf/')
         pdf_link = re.sub(r'v\d+$', '', pdf_link)
-
-        # Icons
-        link_a = soup.new_tag('a', href=abs_link, target="_blank", **{'style': 'margin-right: 10px; text-decoration: none;'})
-        link_i = soup.new_tag('i', **{'class': 'ri-links-line'}) # 原生图标
-        link_a.append(link_i)
+        
+        link_style = "margin-right: 12px; text-decoration: none; color: var(--nord08); display: inline-flex; align-items: center;"
+        
+        link_a = soup.new_tag('a', href=abs_link, target="_blank", **{'style': link_style})
+        link_a.append(soup.new_tag('i', **{'class': 'ri-links-line', 'style': 'margin-right: 4px;'}))
+        link_a.append("Abstract")
         meta_div.append(link_a)
         
-        pdf_a = soup.new_tag('a', href=pdf_link, target="_blank", **{'style': 'margin-right: 15px; text-decoration: none;'})
-        pdf_i = soup.new_tag('i', **{'class': 'ri-file-pdf-line'}) # 使用 RemixIcon 的 PDF 图标
-        pdf_a.append(pdf_i)
+        pdf_a = soup.new_tag('a', href=pdf_link, target="_blank", **{'style': link_style})
+        pdf_a.append(soup.new_tag('i', **{'class': 'ri-file-pdf-line', 'style': 'margin-right: 4px;'}))
+        pdf_a.append("PDF")
         meta_div.append(pdf_a)
 
-        # Authors (不加 style，继承 article-authors 的颜色)
-        authors_text = soup.new_tag('span')
+        # Separator
+        sep = soup.new_tag('span', **{'style': 'margin-right: 12px; color: var(--nord03);'})
+        sep.string = "|"
+        meta_div.append(sep)
+
+        # Authors
+        authors_text = soup.new_tag('span', **{'style': 'font-style: italic;'})
         if isinstance(paper['authors'], list):
             authors_text.string = ", ".join(paper['authors'])
         else:
             authors_text.string = paper['authors']
         meta_div.append(authors_text)
         
-        details.append(meta_div)
+        title_block.append(meta_div)
+        summary_tag.append(title_block)
+        details.append(summary_tag)
 
-        # === 第3行：Title Translation ===
+        # --- 表格化内容区域 ---
+        
+        # 容器：给所有详情内容加一个背景色微调，区别于头部
+        content_wrapper = soup.new_tag('div', **{'style': 'background: rgba(0,0,0,0.1); padding: 10px 15px; border-radius: 6px;'})
+
+        # 1. Title CN
         if paper.get('title_zh'):
-            trans_row = create_row_with_label(soup, "Title CN", paper['title_zh'])
-            if trans_row: details.append(trans_row)
+            row = create_row(soup, "Title CN", paper['title_zh'])
+            content_wrapper.append(row)
 
-        # === 第4行：AI Keywords ===
+        # 2. Keywords
         keywords = paper.get('keywords', [])
         if keywords:
             if isinstance(keywords, list):
-                keywords_str = " · ".join(keywords)
+                # 关键词用小标签样式，更漂亮
+                kw_container = soup.new_tag('div')
+                for k in keywords:
+                    k_span = soup.new_tag('span', **{'style': 'display: inline-block; background: var(--nord03); color: var(--nord06); padding: 2px 8px; border-radius: 4px; font-size: 0.85em; margin-right: 6px; margin-bottom: 2px;'})
+                    k_span.string = k
+                    kw_container.append(k_span)
+                row = create_row(soup, "Keywords", kw_container)
             else:
-                keywords_str = keywords
-            kw_row = create_row_with_label(soup, "AI Keywords", keywords_str)
-            if kw_row: details.append(kw_row)
+                row = create_row(soup, "Keywords", str(keywords))
+            content_wrapper.append(row)
 
-        # === 第5行：AI Summary ===
-        sum_row = create_row_with_label(soup, "AI Summary", paper.get('summary', ''))
-        if sum_row: details.append(sum_row)
+        # 3. AI Summary
+        row = create_row(soup, "AI Summary", paper.get('summary', ''))
+        if row: content_wrapper.append(row)
 
-        # === 第6行：AI Reason ===
-        reason_row = create_row_with_label(soup, "AI Reason", paper.get('reason', ''))
-        if reason_row: details.append(reason_row)
+        # 4. AI Reason
+        # 给理由加一点点高亮背景，因为它是最重要的AI判断
+        reason_content = soup.new_tag('span', **{'style': 'color: var(--nord0D);'}) # 使用黄色/橙色高亮
+        reason_content.string = paper.get('reason', '')
+        row = create_row(soup, "AI Reason", reason_content)
+        if row: content_wrapper.append(row)
 
-        # === 第7行：Original Abstract ===
-        abs_row = create_row_with_label(soup, "Original Abstract", paper.get('abstract', ''))
-        if abs_row: details.append(abs_row)
+        # 5. Original Abstract
+        # 原文摘要字体弄淡一点，作为折叠内容或者次要内容
+        abs_content = soup.new_tag('span', **{'style': 'color: var(--nord03); font-size: 0.9em; text-align: justify; display: block;'})
+        abs_content.string = paper.get('abstract', '')
+        row = create_row(soup, "Abstract", abs_content)
+        if row: content_wrapper.append(row)
 
-        # === 第8行：Raw Comment ===
+        # 6. Comment
         if paper.get('comment'):
-            com_row = create_row_with_label(soup, "Raw Comment", paper['comment'])
-            if com_row: details.append(com_row)
+            row = create_row(soup, "Comment", paper['comment'])
+            content_wrapper.append(row)
 
-        # === 第9行：Categories ===
-        cat_row = create_row_with_label(soup, "Categories", paper.get('category', ''))
-        if cat_row: details.append(cat_row)
+        # 7. Categories (Last row, no border)
+        row = create_row(soup, "Categories", paper.get('category', ''), is_last=True)
+        if row: content_wrapper.append(row)
 
+        details.append(content_wrapper)
         article.append(details)
         top_section.append(article)
 
@@ -153,4 +209,4 @@ if scored_papers:
 with open("target/index.html", 'w') as f:
     f.write(str(soup.prettify()))
 
-print("HTML injection complete.")
+print("HTML injection complete. Table-like layout applied.")

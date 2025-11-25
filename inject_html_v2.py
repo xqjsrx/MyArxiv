@@ -24,7 +24,7 @@ STYLE_ROW_DIV = (
     "align-items: baseline; "
     "padding: 6px 0; "
     "border-bottom: 1px dashed var(--nord04); "
-    "font-size: 0.7em; " # [修改] 全局缩小字号
+    "font-size: 0.75em; " # [修改] 全局缩小字号
 )
 
 # 2. 标签样式：

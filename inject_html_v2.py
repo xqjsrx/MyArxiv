@@ -24,7 +24,7 @@ STYLE_ROW_DIV = (
     "align-items: baseline; "
     "padding: 6px 0; "
     "border-bottom: 1px dashed var(--nord04); "
-    "font-size: 0.5em; " # [修改] 全局缩小字号
+    "font-size: 0.7em; " # [修改] 全局缩小字号
 )
 
 # 2. 标签样式：
@@ -120,12 +120,12 @@ if scored_papers:
 
         # [修改] 图标放大 font-size: 1.3em
         link_a = soup.new_tag('a', href=abs_link, target="_blank", **{'style': 'margin-right: 15px; text-decoration: none;'})
-        link_i = soup.new_tag('i', **{'class': 'ri-links-line', 'style': 'font-size: 1.0em;'}) 
+        link_i = soup.new_tag('i', **{'class': 'ri-links-line', 'style': 'font-size: 1.1em;'}) 
         link_a.append(link_i)
         links_container.append(link_a)
         
         pdf_a = soup.new_tag('a', href=pdf_link, target="_blank", **{'style': 'text-decoration: none;'})
-        pdf_i = soup.new_tag('i', **{'class': 'ri-file-pdf-line', 'style': 'font-size: 1.0em;'}) 
+        pdf_i = soup.new_tag('i', **{'class': 'ri-file-pdf-line', 'style': 'font-size: 1.1em;'}) 
         pdf_a.append(pdf_i)
         links_container.append(pdf_a)
         

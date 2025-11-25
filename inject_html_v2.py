@@ -52,7 +52,7 @@ STYLE_LINKS_CAPSULE = (
     "margin-right: 10px; "
     "padding: 2px 8px; "
     "background: var(--nord08); " # [修改] 灰色 -> 青色
-    "color: var(--nord00); "      # 深色图标
+    "color: white; "      # 深色图标
     "border-radius: 4px;"
 )
 

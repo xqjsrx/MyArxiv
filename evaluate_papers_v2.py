@@ -28,7 +28,8 @@ PROMPT_TEMPLATE = """
 2. **Reason**: 简短的打分理由。
 3. **Summary**: 简短的中文总结。
 4. **Keywords**: 提取3-5个最核心的中文关键词。
-5. **Publication**: 根据comment字段判断该论文是否已被会议或期刊接收。如果已被接收（如CVPR, ICLR, TIP等），请提取会议/期刊名称（例如 "CVPR 2024"）；如果comment中没有提及发表信息，请返回 "N/A"。
+5. **Title_ZH**: 将论文标题翻译为中文。
+6. **Publication**: 根据comment字段判断该论文是否已被会议或期刊接收。如果已被接收（如CVPR, ICLR, TIP等），请提取会议/期刊名称（例如 "CVPR 2024"）；如果comment中没有提及发表信息，请返回 "N/A"。
 
 下面是论文信息：
 title：{title}
@@ -47,6 +48,7 @@ JSON_RESPONSE_TEMPLATE = """
   "reason": "xxx",
   "summary": "xxx",
   "keywords": ["word1", "word2"],
+  "title_zh": "xxx",
   "publication": "xxx"
 }
 """
@@ -58,7 +60,7 @@ def call_qwen_api(prompt):
             base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         )
         completion = client.chat.completions.create(
-            model="qwen-plus", # 建议用plus或max，指令遵循能力更强，flash可能会漏字段
+            model="qwen-flash", 
             messages=[
                 {'role': 'system', 'content': 'You are a helpful assistant.'},
                 {'role': 'user', 'content': prompt}
@@ -103,6 +105,7 @@ def evaluate_papers(input_file, output_file):
                     paper['reason'] = response.get('reason', 'N/A')
                     paper['summary'] = response.get('summary', 'N/A')
                     paper['keywords'] = response.get('keywords', [])
+                    paper['title_zh'] = response.get('title_zh', '')
                     paper['publication'] = response.get('publication', 'N/A')
                 except json.JSONDecodeError:
                     print(f"JSON解析失败: {cleaned_res}")

@@ -17,34 +17,34 @@ scored_papers.sort(key=lambda x: x['score'], reverse=True)
 
 # ----------------- 样式常量定义 -----------------
 
-# 1. 每一行的容器：Flex布局 + 底部虚线 + 适度垂直间距
+# 1. 每一行的容器：
+# - 增加 font-size: 0.9em，让正文和标签整体变小，看起来更精致
 STYLE_ROW_DIV = (
     "display: flex; "
     "align-items: baseline; "
-    "padding: 6px 0; " # 减小一点内边距，更紧凑
+    "padding: 6px 0; "
     "border-bottom: 1px dashed var(--nord04); "
+    "font-size: 0.9em; " # [修改] 全局缩小字号
 )
 
 # 2. 标签样式：
-# - 移除 text-align: center (因为 chip 是 flex，不起作用)
-# - 增加 justify-content: center (让文字在 flex 容器中居中)
-# - 宽度设为 100px (足够放下 Categories 和 Keywords)
 STYLE_LABEL_FIXED = (
     "width: 100px; "       
-    "justify-content: center; " # Flex 布局下的水平居中
+    "justify-content: center; " 
     "flex-shrink: 0; "     
     "margin-right: 15px; " 
 )
 
 # 3. 分数样式：
-# - 移除 font-size (回归原生)
-# - 保留背景色和 padding 以维持徽章形状
+# - 增加 font-size: 1.2em，让分数更大更醒目
 STYLE_SCORE = (
     "background: var(--nord0B); "
     "color: white; "
     "font-weight: bold; "
-    "padding: 2px 8px; " 
-    "margin-right: 10px;"
+    "font-size: 1.2em; " # [修改] 放大字号
+    "padding: 3px 10px; " 
+    "margin-right: 12px;"
+    "border-radius: 4px;"
 )
 
 # ----------------- 辅助函数 -----------------
@@ -60,7 +60,7 @@ def create_row_with_label(soup, label_text, content_text):
     label.string = label_text
     div.append(label)
     
-    # Content: 移除所有自定义样式，继承父元素
+    # Content
     content = soup.new_tag('span', **{'style': 'flex-grow: 1;'})
     content.string = str(content_text)
     div.append(content)
@@ -78,11 +78,12 @@ if scored_papers:
 
     for paper in scored_papers:
         # Article 容器
-        article = soup.new_tag('article', **{'style': 'margin-bottom: 25px; padding-bottom: 5px; border-bottom: 3px double var(--nord03);'})
+        # [修改] 移除了 border-bottom，增加了 margin-bottom 用于留白分隔
+        article = soup.new_tag('article', **{'style': 'margin-bottom: 40px;'})
         details = soup.new_tag('details', **{'class': 'article-expander', 'open': 'true'})
         
         # === Row 1: Header (Score | Title | Publication) ===
-        summary_tag = soup.new_tag('summary', **{'class': 'article-expander-title', 'style': 'display: flex; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--nord04);'})
+        summary_tag = soup.new_tag('summary', **{'class': 'article-expander-title', 'style': 'display: flex; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--nord04);'})
         
         # Score
         score_span = soup.new_tag('span', **{'class': 'chip', 'style': STYLE_SCORE})
@@ -92,7 +93,7 @@ if scored_papers:
         # Title Container
         title_container = soup.new_tag('div', **{'style': 'flex-grow: 1; display: flex; align-items: baseline; flex-wrap: wrap;'})
         
-        # Title: 移除 font-size，只保留粗体
+        # Title
         title_span = soup.new_tag('span', **{'style': 'margin-right: 10px; font-weight: bold;'})
         title_span.string = paper['title']
         title_container.append(title_span)
@@ -110,26 +111,27 @@ if scored_papers:
         meta_div = soup.new_tag('div', **{'class': 'article-authors', 'style': STYLE_ROW_DIV})
         
         # Links Container (左对齐)
-        links_container = soup.new_tag('div', **{'style': 'width: 100px; text-align: center; flex-shrink: 0; margin-right: 15px; display: flex; justify-content: center;'})
+        links_container = soup.new_tag('div', **{'style': 'width: 100px; text-align: center; flex-shrink: 0; margin-right: 15px; display: flex; justify-content: center; align-items: center;'})
         
         # Link Logic
         abs_link = paper['id']
         pdf_link = abs_link.replace('/abs/', '/pdf/')
         pdf_link = re.sub(r'v\d+$', '', pdf_link)
 
+        # [修改] 图标放大 font-size: 1.3em
         link_a = soup.new_tag('a', href=abs_link, target="_blank", **{'style': 'margin-right: 15px; text-decoration: none;'})
-        link_i = soup.new_tag('i', **{'class': 'ri-links-line'}) # 移除 font-size 放大
+        link_i = soup.new_tag('i', **{'class': 'ri-links-line', 'style': 'font-size: 1.3em;'}) 
         link_a.append(link_i)
         links_container.append(link_a)
         
         pdf_a = soup.new_tag('a', href=pdf_link, target="_blank", **{'style': 'text-decoration: none;'})
-        pdf_i = soup.new_tag('i', **{'class': 'ri-file-pdf-line'}) # 移除 font-size 放大
+        pdf_i = soup.new_tag('i', **{'class': 'ri-file-pdf-line', 'style': 'font-size: 1.3em;'}) 
         pdf_a.append(pdf_i)
         links_container.append(pdf_a)
         
         meta_div.append(links_container)
 
-        # Authors: 移除所有颜色和字体样式，完全继承原生
+        # Authors
         authors_text = soup.new_tag('span', **{'style': 'font-style: italic;'})
         if isinstance(paper['authors'], list):
             authors_text.string = ", ".join(paper['authors'])
@@ -162,11 +164,11 @@ if scored_papers:
         reason_row = create_row_with_label(soup, "Reason", paper.get('reason', ''))
         if reason_row: details.append(reason_row)
 
-        # === Row 7: Abstract (Shortened Label) ===
+        # === Row 7: Abstract ===
         abs_row = create_row_with_label(soup, "Abstract", paper.get('abstract', ''))
         if abs_row: details.append(abs_row)
 
-        # === Row 8: Comment (Shortened Label) ===
+        # === Row 8: Comment ===
         if paper.get('comment'):
             com_row = create_row_with_label(soup, "Comment", paper['comment'])
             if com_row: details.append(com_row)
@@ -192,4 +194,4 @@ if scored_papers:
 with open("target/index.html", 'w') as f:
     f.write(str(soup.prettify()))
 
-print("HTML injection complete. Styles reset to default.")
+print("HTML injection complete. Visual hierarchy optimized.")

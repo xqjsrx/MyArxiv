@@ -15,190 +15,171 @@ soup = BeautifulSoup(html_content, 'html.parser')
 scored_papers = [p for p in evaluated_papers if 'score' in p and isinstance(p['score'], int)]
 scored_papers.sort(key=lambda x: x['score'], reverse=True)
 
-# ----------------- 样式定义 (Inline CSS) -----------------
+# ----------------- 样式常量定义 -----------------
 
-# 1. 每一行的容器：Flex布局，底部虚线
-STYLE_ROW = (
+# 1. 每一行的容器：Flex布局 + 底部虚线 + 上下内边距
+STYLE_ROW_DIV = (
     "display: flex; "
     "align-items: baseline; "
     "padding: 8px 0; "
-    "border-bottom: 1px dashed var(--nord04); " # 虚线分割
-    "opacity: 0.95;"
+    "border-bottom: 1px dashed var(--nord04); " # 使用淡色虚线
 )
 
-# 2. 左侧 Label：固定宽度，右对齐，显得很整齐
-STYLE_LABEL_COL = (
-    "flex: 0 0 110px; "  # 固定宽度 110px
-    "text-align: right; "
-    "margin-right: 15px; "
+# 2. 标签样式：继承chip + 固定宽度 + 文字居中 + 不允许压缩
+# 注意：class="chip" 已经定义了基础样式，这里只加布局相关的
+STYLE_LABEL_FIXED = (
+    "width: 120px; "       # 调整此宽度以适应最长的标签 'Original Abstract'
+    "text-align: center; " # 标签文字居中，显得更整齐
+    "flex-shrink: 0; "     # 防止被内容挤压
+    "margin-right: 15px; " # 标签和内容的间距
 )
 
-# 3. 右侧 Content：占据剩余空间
-STYLE_CONTENT_COL = (
-    "flex: 1; "
-    "line-height: 1.6; "
-)
+# 3. 内容样式：占据剩余空间
+STYLE_CONTENT = "flex-grow: 1;"
 
-# 4. Label 本身的 Chip 样式 (保持原生风格)
-STYLE_CHIP_LABEL = (
-    "font-size: 0.85em; "
-    "padding: 3px 8px; "
-    "border-radius: 6px; "
-    "font-weight: bold; "
-    "background: var(--nord04); " # 稍微淡一点的背景，不抢眼
-    "color: var(--nord01); "
-    "display: inline-block;"
-)
-
-# 5. 分数勋章样式 (更醒目)
-STYLE_SCORE_BADGE = (
-    "background: var(--nord0B); " # 红色
+# 4. 分数样式：放大一点，更醒目
+STYLE_SCORE = (
+    "background: var(--nord0B); "
     "color: white; "
-    "font-size: 1.1em; "
-    "font-weight: 800; "
-    "padding: 4px 10px; "
-    "border-radius: 8px; "
-    "margin-right: 12px; "
-    "box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
+    "font-size: 1.1em; "     # 字号稍大
+    "padding: 4px 10px; "    # 内边距稍大
+    "margin-right: 12px;"
 )
 
 # ----------------- 辅助函数 -----------------
 
-def create_flex_row(soup, label_text, content_text):
-    """创建左右对齐的 Flex 行"""
+def create_row_with_label(soup, label_text, content_text):
     if not content_text or content_text == "N/A":
         return None
         
-    row_div = soup.new_tag('div', **{'style': STYLE_ROW})
+    div = soup.new_tag('div', **{'style': STYLE_ROW_DIV})
     
-    # Left Column (Label)
-    left_col = soup.new_tag('div', **{'style': STYLE_LABEL_COL})
-    label_span = soup.new_tag('span', **{'style': STYLE_CHIP_LABEL}) # 这里不再用 class=chip 避免样式冲突，直接内联
-    label_span.string = label_text
-    left_col.append(label_span)
-    row_div.append(left_col)
+    # Label: 原生chip + 固定宽度样式
+    label = soup.new_tag('span', **{'class': 'chip', 'style': STYLE_LABEL_FIXED})
+    label.string = label_text
+    div.append(label)
     
-    # Right Column (Content)
-    right_col = soup.new_tag('div', **{'style': STYLE_CONTENT_COL})
-    right_col.string = str(content_text)
-    row_div.append(right_col)
+    # Content
+    content = soup.new_tag('span', **{'style': STYLE_CONTENT})
+    content.string = str(content_text)
+    div.append(content)
     
-    return row_div
+    return div
 
 # ----------------- 构建页面 -----------------
 
 if scored_papers:
-    # 外层容器
-    top_section = soup.new_tag('section', **{'class': 'day-container', 'style': 'margin-top: 25px; border: 3px solid var(--nord08); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);'})
+    top_section = soup.new_tag('section', **{'class': 'day-container', 'style': 'margin-top: 20px; border: 2px solid var(--nord08);'})
     
-    # 头部
-    header_div = soup.new_tag('div', **{'class': 'date', 'style': 'padding: 15px; border-bottom: 2px solid var(--nord04); background: rgba(0,0,0,0.02);'})
+    header_div = soup.new_tag('div', **{'class': 'date', 'style': 'padding-bottom: 15px; border-bottom: 1px solid var(--nord04); margin-bottom: 15px;'})
     header_div.string = f"🏆 Weekly Top Picks ({len(scored_papers)} Papers)"
     top_section.append(header_div)
 
     for paper in scored_papers:
-        # 单篇论文容器 (去掉原本的 dashed border，因为内部行已经有分割线了)
-        article = soup.new_tag('article', **{'style': 'padding: 0 15px 25px 15px; margin-bottom: 10px; border-bottom: 4px solid var(--nord04);'})
+        # Article 容器
+        article = soup.new_tag('article', **{'style': 'margin-bottom: 25px; padding-bottom: 10px; border-bottom: 3px double var(--nord03);'})
+        details = soup.new_tag('details', **{'class': 'article-expander', 'open': 'true'})
         
-        # 默认展开
-        details = soup.new_tag('details', **{'class': 'article-expander', 'open': 'true', 'style': 'border: none;'})
+        # === Row 1: Header (Score | Title | Publication) ===
+        # 这一行比较特殊，不用 create_row_with_label，单独写 Flex
+        summary_tag = soup.new_tag('summary', **{'class': 'article-expander-title', 'style': 'display: flex; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--nord04);'})
         
-        # === 标题行 (Summary) ===
-        summary_tag = soup.new_tag('summary', **{'class': 'article-expander-title', 'style': 'padding: 15px 0 10px 0; display: flex; align-items: center; list-style: none;'})
-        
-        # 1. Score Badge
-        score_span = soup.new_tag('span', **{'style': STYLE_SCORE_BADGE})
+        # 1. Score (醒目)
+        score_span = soup.new_tag('span', **{'class': 'chip', 'style': STYLE_SCORE})
         score_span.string = str(paper['score'])
         summary_tag.append(score_span)
         
-        # 2. Title Container
-        title_div = soup.new_tag('div', **{'style': 'flex: 1;'})
+        # 容器：包含 Title 和 Pub
+        title_container = soup.new_tag('div', **{'style': 'flex-grow: 1; display: flex; align-items: baseline; flex-wrap: wrap;'})
         
-        # Title Text
-        title_text = soup.new_tag('div', **{'style': 'font-size: 1.25em; font-weight: 700; line-height: 1.3; color: var(--nord03);'})
-        title_text.string = paper['title']
-        title_div.append(title_text)
+        # 2. Title
+        title_span = soup.new_tag('span', **{'style': 'font-size: 1.2em; margin-right: 10px; font-weight: bold;'})
+        title_span.string = paper['title']
+        title_container.append(title_span)
         
-        # Publication Tag (if exists)
+        # 3. Publication
         if paper.get('publication') and paper['publication'] != "N/A":
-            pub_span = soup.new_tag('span', **{'class': 'chip', 'style': 'margin-top: 6px; font-size: 0.8em; background: var(--nord0E); color: var(--nord01);'})
+            pub_span = soup.new_tag('span', **{'class': 'chip'})
             pub_span.string = paper['publication']
-            title_div.append(pub_span)
+            title_container.append(pub_span)
             
-        summary_tag.append(title_div)
+        summary_tag.append(title_container)
         details.append(summary_tag)
 
-        # === 核心信息区 (Flex 布局) ===
+        # === Row 2: Meta (Links | Authors) ===
+        # 使用 Flex 布局保持整齐，底部加虚线
+        meta_div = soup.new_tag('div', **{'class': 'article-authors', 'style': STYLE_ROW_DIV})
         
-        # 1. 作者与链接行 (这一行比较特殊，不需要Label，单独处理)
-        meta_row = soup.new_tag('div', **{'style': "padding-bottom: 12px; margin-bottom: 5px; border-bottom: 1px solid var(--nord04); display: flex; align-items: center; font-size: 0.9em; color: var(--nord03);"})
+        # 左侧占位（为了和下面的 Label 对齐，放一个透明的或者 Links 放左边）
+        # 这里为了美观，我们把 Links 放在 Label 的位置
+        links_container = soup.new_tag('div', **{'style': 'width: 120px; text-align: center; flex-shrink: 0; margin-right: 15px;'})
         
-        # Icons
+        # Link Logic
         abs_link = paper['id']
         pdf_link = abs_link.replace('/abs/', '/pdf/')
         pdf_link = re.sub(r'v\d+$', '', pdf_link)
-        
-        link_a = soup.new_tag('a', href=abs_link, target="_blank", **{'style': 'margin-right: 12px; text-decoration: none; display: flex; align-items: center;'})
-        link_i = soup.new_tag('i', **{'class': 'ri-links-line', 'style': 'margin-right: 4px;'}) 
-        link_a.append(link_i)
-        link_a.append("ABS")
-        meta_row.append(link_a)
 
-        pdf_a = soup.new_tag('a', href=pdf_link, target="_blank", **{'style': 'margin-right: 20px; text-decoration: none; display: flex; align-items: center; color: var(--nord0B);'})
-        pdf_i = soup.new_tag('i', **{'class': 'ri-file-pdf-line', 'style': 'margin-right: 4px;'})
+        link_a = soup.new_tag('a', href=abs_link, target="_blank", **{'style': 'margin-right: 10px; text-decoration: none;'})
+        link_i = soup.new_tag('i', **{'class': 'ri-links-line', 'style': 'font-size: 1.2em;'}) 
+        link_a.append(link_i)
+        links_container.append(link_a)
+        
+        pdf_a = soup.new_tag('a', href=pdf_link, target="_blank", **{'style': 'text-decoration: none;'})
+        pdf_i = soup.new_tag('i', **{'class': 'ri-file-pdf-line', 'style': 'font-size: 1.2em;'}) 
         pdf_a.append(pdf_i)
-        pdf_a.append("PDF")
-        meta_row.append(pdf_a)
+        links_container.append(pdf_a)
+        
+        meta_div.append(links_container)
 
         # Authors
-        authors_text = soup.new_tag('span', **{'style': 'font-style: italic; opacity: 0.8;'})
+        authors_text = soup.new_tag('span', **{'style': 'font-style: italic; color: var(--nord03);'})
         if isinstance(paper['authors'], list):
             authors_text.string = ", ".join(paper['authors'])
         else:
             authors_text.string = paper['authors']
-        meta_row.append(authors_text)
+        meta_div.append(authors_text)
         
-        details.append(meta_row)
+        details.append(meta_div)
 
-        # 2. 中文标题 (Title CN)
+        # === Row 3: Title CN ===
         if paper.get('title_zh'):
-            row = create_flex_row(soup, "Title CN", paper['title_zh'])
-            if row:
-                row.find_all('div')[1]['style'] += "font-weight: bold; color: var(--nord02);"
-                details.append(row)
+            trans_row = create_row_with_label(soup, "Title CN", paper['title_zh'])
+            if trans_row: details.append(trans_row)
 
-        # 3. AI Keywords
+        # === Row 4: AI Keywords ===
         keywords = paper.get('keywords', [])
         if keywords:
             if isinstance(keywords, list):
                 keywords_str = " · ".join(keywords)
             else:
                 keywords_str = keywords
-            row = create_flex_row(soup, "AI Keywords", keywords_str)
-            if row: details.append(row)
+            kw_row = create_row_with_label(soup, "AI Keywords", keywords_str)
+            if kw_row: details.append(kw_row)
 
-        # 4. AI Summary
-        row = create_flex_row(soup, "AI Summary", paper.get('summary', ''))
-        if row: details.append(row)
+        # === Row 5: AI Summary ===
+        sum_row = create_row_with_label(soup, "AI Summary", paper.get('summary', ''))
+        if sum_row: details.append(sum_row)
 
-        # 5. AI Reason
-        row = create_flex_row(soup, "AI Reason", paper.get('reason', ''))
-        if row: details.append(row)
+        # === Row 6: AI Reason ===
+        reason_row = create_row_with_label(soup, "AI Reason", paper.get('reason', ''))
+        if reason_row: details.append(reason_row)
 
-        # 6. Original Abstract
-        row = create_flex_row(soup, "Abstract", paper.get('abstract', ''))
-        if row:
-            # 摘要字体稍微小一点，颜色淡一点
-            row.find_all('div')[1]['style'] += "font-size: 0.9em; opacity: 0.8;"
-            details.append(row)
+        # === Row 7: Original Abstract ===
+        abs_row = create_row_with_label(soup, "Original Abstract", paper.get('abstract', ''))
+        if abs_row: details.append(abs_row)
 
-        # 7. Raw Comment
-        row = create_flex_row(soup, "Comment", paper.get('comment', ''))
-        if row: details.append(row)
+        # === Row 8: Raw Comment ===
+        if paper.get('comment'):
+            com_row = create_row_with_label(soup, "Raw Comment", paper['comment'])
+            if com_row: details.append(com_row)
 
-        # 8. Categories
-        row = create_flex_row(soup, "Categories", paper.get('category', ''))
-        if row: details.append(row)
+        # === Row 9: Categories ===
+        # 最后一行去掉 border-bottom，显得更自然
+        cat_row = create_row_with_label(soup, "Categories", paper.get('category', ''))
+        if cat_row:
+            # 移除最后一行的 border
+            cat_row['style'] = cat_row['style'].replace('border-bottom: 1px dashed var(--nord04);', '')
+            details.append(cat_row)
 
         article.append(details)
         top_section.append(article)
@@ -214,4 +195,4 @@ if scored_papers:
 with open("target/index.html", 'w') as f:
     f.write(str(soup.prettify()))
 
-print("HTML injection complete: Fixed None appending error.")
+print("HTML injection complete. Layout refined.")

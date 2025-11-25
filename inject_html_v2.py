@@ -162,10 +162,10 @@ if scored_papers:
 
         # 2. 中文标题 (Title CN)
         if paper.get('title_zh'):
-            # 特殊处理一下中文标题，让它粗一点
             row = create_flex_row(soup, "Title CN", paper['title_zh'])
-            row.find_all('div')[1]['style'] += "font-weight: bold; color: var(--nord02);"
-            details.append(row)
+            if row:
+                row.find_all('div')[1]['style'] += "font-weight: bold; color: var(--nord02);"
+                details.append(row)
 
         # 3. AI Keywords
         keywords = paper.get('keywords', [])
@@ -174,26 +174,31 @@ if scored_papers:
                 keywords_str = " · ".join(keywords)
             else:
                 keywords_str = keywords
-            details.append(create_flex_row(soup, "AI Keywords", keywords_str))
+            row = create_flex_row(soup, "AI Keywords", keywords_str)
+            if row: details.append(row)
 
         # 4. AI Summary
-        details.append(create_flex_row(soup, "AI Summary", paper.get('summary', '')))
+        row = create_flex_row(soup, "AI Summary", paper.get('summary', ''))
+        if row: details.append(row)
 
         # 5. AI Reason
-        details.append(create_flex_row(soup, "AI Reason", paper.get('reason', '')))
+        row = create_flex_row(soup, "AI Reason", paper.get('reason', ''))
+        if row: details.append(row)
 
         # 6. Original Abstract
-        abs_row = create_flex_row(soup, "Abstract", paper.get('abstract', ''))
-        if abs_row:
+        row = create_flex_row(soup, "Abstract", paper.get('abstract', ''))
+        if row:
             # 摘要字体稍微小一点，颜色淡一点
-            abs_row.find_all('div')[1]['style'] += "font-size: 0.9em; opacity: 0.8;"
-            details.append(abs_row)
+            row.find_all('div')[1]['style'] += "font-size: 0.9em; opacity: 0.8;"
+            details.append(row)
 
         # 7. Raw Comment
-        details.append(create_flex_row(soup, "Comment", paper.get('comment', '')))
+        row = create_flex_row(soup, "Comment", paper.get('comment', ''))
+        if row: details.append(row)
 
         # 8. Categories
-        details.append(create_flex_row(soup, "Categories", paper.get('category', '')))
+        row = create_flex_row(soup, "Categories", paper.get('category', ''))
+        if row: details.append(row)
 
         article.append(details)
         top_section.append(article)
@@ -209,4 +214,4 @@ if scored_papers:
 with open("target/index.html", 'w') as f:
     f.write(str(soup.prettify()))
 
-print("HTML injection complete: Neat layout applied.")
+print("HTML injection complete: Fixed None appending error.")

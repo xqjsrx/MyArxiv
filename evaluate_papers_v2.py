@@ -7,31 +7,51 @@ API_KEY = os.getenv("API_KEY")
 
 # 自定义的提示模板
 PROMPT_TEMPLATE = """
-我是一个人工智能相关专业在读研究生，目前的研究内容是文档图片理解（document image understanding, DIU），DIU的目标是输入一张文档（账单、简历、菜单等）的图片，AI能够识别里面的信息，理解这个文档的含义，比如这是什么种类的文档、里面的字段有哪些、这些字段之间的关系是什么之类的。
+我是一名人工智能方向的研究生，专注于文档图像理解（Document Image Understanding, DIU）。
+请扮演我的科研助手，严格根据我的研究兴趣对今天的Arxiv论文进行筛选、打分和总结。
 
-想要实现DIU，一般需要三个步骤：
-1、ocr：将文档里的文本识别出来，这一步有些论文的做法是使用ocr工具，另外一些ocr free的论文则在模型里实现了ocr的功能，不需要ocr工具。除了OCR Free的工作，针对性增强OCR能力的工作值得关注。
-2、实体识别：将上文得到的文本进行实体识别。在这个步骤中，有一些经典的主题，例如开放域实体识别，生成式实体识别，以及少样本乃至零样本识别。
-3、关系抽取：将上文得到的实体识别结果进行关系抽取。在这个步骤中，性能指标达到先进水平的工作值得关注。在降低计算复杂度方面的工作值得关注。在减少累积误差的工作值得关注。
+### 1. 核心研究领域：DIU (Document Image Understanding)
+**对于属于DIU领域的论文，请放宽筛选标准，只要相关度高都给予及格以上分数。**
+- **关注任务**：DocVQA、Information Extraction (VIE/KIE)、Layout Analysis、Table Recognition、OCR。
+- **接受范围**：
+    - 即使是传统的OCR流水线、或者侧重效率优化（Efficiency）的工作，**也不要排除**，给中等分数即可（因为DIU论文较少，我需要保持关注）。
+    - 重点关注：基于VLM的、OCR-free的、端到端的文档理解新工作（给高分）。
+- **唯一排除**：**小语种**（非中英）的特定文档数据集或模型（如泰语、越南语等），此类直接打低分。
 
-除了任务层面以外，还有一类论文值得关注。之前主流的论文主要使用预训练模型搭建一个系统，而近期随着多模态模型的出现，使用多模态模型（如VLM）进行DIU的工作出现了很多，他们直接训练或微调了一个视觉多模态模型进行DIU，不需要分步骤，一次实现识别，甚至可以作为聊天机器人进行问答。这可能是未来的发展趋势，这些论文证明了可以应用完全不同的技术栈在该领域内进行颠覆式的创新，值得重点关注。
-最后，那些提出这个领域内新数据集的工作值得关注。
+### 2. 关联领域：LLM / VLM / Agent / Inference Scaling
+**对于这些上游或平行领域，我的目的是“寻找工具”，筛选标准需严格。**
+我主要寻找**能迁移应用到DIU任务中，提升模型性能（Performance）的方法**，而非提升速度。
+- **寻找的技术特性（High Priority）**：
+    - **推理阶段干预（Inference-time intervention）**：类似Attention intervention、Logit manipulation、Decoding strategy等。我将其视为提升DIU性能的潜在工具。
+    - **Inference Scaling / Reasoning**：CoT、ToT、Search-based reasoning。**关键看它能否帮助解决视觉文档中的复杂逻辑或幻觉问题**。
+    - **Agent**：能处理长文档、多步工具调用的Agent架构。
+- **排除项（Low Priority）**：
+    - 关联领域中纯粹的效率优化（如纯模型量化、剪枝）。
+    - 关联领域中过于传统的微调方法或与视觉完全无关的纯NLP理论。
 
-除了直接进行DIU工作的论文，一些相领域或关键词的工作也值得借鉴，比如视觉信息抽取（visual information extraction）、visually-rich document、布局（layout）、表格（table）等。
+### 📝 打分标准 (0-10分)
+- **9-10分 (Must Read)**：
+    - **DIU领域**：SOTA级别的VLM文档理解模型、解决了OCR幻觉/细粒度识别/Grounding痛点的DIU工作。
+    - **关联领域**：提出了非常新颖的推理阶段干预方法、或极具启发性的多模态Inference Scaling技术，且极大概率能迁移到文档任务。
+- **6-8分 (Relevant)**：
+    - **DIU领域**：大多数主流DIU工作，包括新数据集、传统方法的改进、效率优化工作。
+    - **关联领域**：与视觉多模态紧密相关的VLM改进、Agent框架。
+- **3-5分 (Borderline)**：
+    - 比较边缘的CV/NLP工作，迁移到文档领域的可能性较低或成本较高。
+- **0-2分 (Ignore)**：
+    - 小语种工作。
+    - 与文档理解毫无关系的纯理论或无关应用（如视频生成、纯自动驾驶、蛋白质折叠）。
 
-以上是DIU领域的概述，此外，（视觉）多模态模型（VLM）、大语言模型（LLM）作为DIU的上游领域，其中的新任务、新技术的提出可能可以应用在DIU领域。其中有潜力的一条技术路线如下：目前，LLM的发展已经到了inference scaling的阶段，即通过增大推理阶段的计算量来提高模型的性能，比如chain of thought(cot)、tree of thought(tot)、contrastive decoding、gpt o1、mcts、test time training(ttt)等技术都是这一阶段的热门技术，目前这些技术主要应用于需要逻辑推理（reasoning）的领域，而我觉得这些技术可以提高VLM在DIU领域的性能，值得重点关注。
+### ✅ 任务指令
+请根据以上信息，对下面这篇论文进行评估。
+1. **Score**: 给出整数评分。
+2. **Title_zh**: 将标题翻译为通顺的中文。
+3. **Reason**: 用**中文**简述打分理由。如果是DIU论文，指出其任务；如果是关联领域论文，**必须指出其方法论对DIU有何潜在借鉴意义**（如：“此推理干预方法可用于减少OCR幻觉”）。
+4. **Summary**: 中文总结核心贡献。
+5. **Keywords**: 3-5个中文关键词。
+6. **Publication**: 提取会议/期刊（如CVPR, ACL, ICLR），无则填"N/A"。
 
-近期，agent（智能体）的概念火热了起来，智能体（Intelligent Agent）是一种具有自主性、感知能力、学习能力和适应性的计算机程序或系统。它可以在某种程度上理解其所处的环境，根据环境的变化做出相应的决策和行动，以实现某种预定的目标。公认的agent系统由智能体（一般是LLM担任）、记忆、工具、规划、行动等要素组成。我觉得agent是人工智能的下一个阶段，搭建一个应用于DIU的agent应该是一个不错的想法。目前，agent的工作还在比较早期的阶段，大致有两个研究方向：应用型主要研究使用针对特定领域搭建一个agent系统，类似我设想的DIU agent；研究型主要研究解决目前agent的不足，比如核心LLM的多步推理操作能力等。agent值得关注。
-
-你是我的助手，请根据论文信息进行筛选和打分。
-1. **Score**: 满分10分，DIU/VLM/Agent强相关给高分，无关给低分。
-2. **Reason**: 简短的打分理由。
-3. **Summary**: 简短的中文总结。
-4. **Keywords**: 提取3-5个最核心的中文关键词。
-5. **Title_ZH**: 将论文标题翻译为中文。
-6. **Publication**: 根据comment字段判断该论文是否已被会议或期刊接收。如果已被接收（如CVPR, ICLR, TIP等），请提取会议/期刊名称（例如 "CVPR 2024"）；如果comment中没有提及发表信息，请返回 "N/A"。
-
-下面是论文信息：
+论文信息：
 title：{title}
 authors：{authors}
 abstract：{abstract}
@@ -45,10 +65,10 @@ category：{category}
 JSON_RESPONSE_TEMPLATE = """
 {
   "score": x,
+  "title_zh": "中文标题",
   "reason": "xxx",
   "summary": "xxx",
   "keywords": ["word1", "word2"],
-  "title_zh": "xxx",
   "publication": "xxx"
 }
 """

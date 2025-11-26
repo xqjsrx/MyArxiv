@@ -21,8 +21,16 @@ def process_cache_file(cache_file, output_file):
     # 使用字典进行去重：Key是基础ID，Value是论文数据
     unique_papers = {}
 
-    # 遍历缓存中的每一天 (cache_data 是以日期为 Key 的字典)
-    for date, categories in cache_data.items():
+    # 1. 获取所有日期并降序排序 (最新的日期排在前面)
+    all_dates = sorted(cache_data.keys(), reverse=True)
+    
+    # 2. 只取最近的 7 天
+    target_dates = all_dates[:7]
+    print(f"Processing papers from the last {len(target_dates)} days: {target_dates}")
+
+    # 3. 遍历这 7 天的数据
+    for date in target_dates:
+        categories = cache_data[date]
         for category, papers in categories.items():
             for paper in papers:
                 # 清理数据
@@ -30,7 +38,7 @@ def process_cache_file(cache_file, output_file):
                 if 'comment' in paper and paper['comment'] is not None:
                     paper['comment'] = remove_newlines(paper['comment'])
                 
-                # 处理摘要字段 (原项目中是 summary)
+                # 处理摘要字段
                 if 'summary' in paper:
                     paper['abstract'] = remove_newlines(paper['summary'])
                     del paper['summary']
@@ -48,15 +56,12 @@ def process_cache_file(cache_file, output_file):
                     # 如果论文已存在
                     existing_paper = unique_papers[base_id]
                     
-                    # 1. 合并 Category (去重)
+                    # 合并 Category (去重)
                     if category not in existing_paper['category']:
                         existing_paper['category'].append(category)
                     
-                    # 2. 版本检查：如果当前遍历到的 paper 更新时间更晚，则更新内容
-                    # 注意：这里假设 arxiv api 返回的 updated 字符串是可以比较的，或者我们简单地假设后遍历到的是新的
-                    # 为了简单起见，通常 ID 带 v2 的会比 v1 晚。
-                    # 如果现有的是 v1，新来的是 v2，我们要更新除了 category 以外的信息
-                    if paper_id > existing_paper['id']: # 字符串比较 v2 > v1
+                    # 版本检查：如果当前遍历到的 paper ID 字典序更大 (v2 > v1)，则更新内容
+                    if paper_id > existing_paper['id']:
                          # 保留已有的分类列表
                         cats = existing_paper['category']
                         # 更新内容
@@ -68,15 +73,16 @@ def process_cache_file(cache_file, output_file):
     
     # 把 category 列表转回字符串，如 "cs.CV, cs.AI"
     for paper in merged_data:
-        paper['category'] = ", ".join(paper['category'])
+        if isinstance(paper['category'], list):
+            paper['category'] = ", ".join(paper['category'])
 
     print(f"Total papers after deduplication: {len(merged_data)}")
 
-    # # ================= DEBUG LIMIT =================
-    # # 限制为前 20 篇，用于快速测试
-    # merged_data = merged_data[:20]
-    # print(f"DEBUG MODE: Only processing top {len(merged_data)} papers.")
-    # # ===============================================
+    # ================= DEBUG LIMIT =================
+    # 限制为前 20 篇，用于快速测试 (正式运行时请注释掉)
+    merged_data = merged_data[:20]
+    print(f"DEBUG MODE: Only processing top {len(merged_data)} papers.")
+    # ===============================================
 
     # 写入输出文件
     with open(output_file, 'w') as f:

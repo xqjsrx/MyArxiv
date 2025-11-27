@@ -1,0 +1,207 @@
+import os
+import json
+import time
+import concurrent.futures
+from openai import OpenAI
+from requests.exceptions import RequestException
+
+# 填写API的密钥
+API_KEY = os.getenv("API_KEY")
+
+# ================= 配置区域 =================
+MODEL_NAME = "qwen-plus"
+MAX_WORKERS = 10  # 并发线程数 (Qwen-plus 的 QPS 限制通常允许 5-10 并发)
+RETRY_LIMIT = 3   # 失败重试次数
+
+# ================= 提示词模板 (保持不变) =================
+# 自定义的提示模板
+PROMPT_TEMPLATE = """
+我是一名人工智能方向的研究生，核心研究领域是 **文档图像理解（DIU / DocVQA）**。
+我的目标是利用 **VLM (Multimodal LLM)** 技术解决文档理解中的核心痛点（如OCR幻觉、密集文本、复杂排版、长文档推理）。
+
+请担任一名**挑剔的审稿人**，帮我筛选论文。
+**原则：不拘泥于特定技术路线（如必须是Agent或必须是Intervention），只要能提升DIU性能的底层方法都值得关注；但坚决抵制无营养的“平行应用”。**
+
+### 🛑 负面清单（直接打0-3分）
+**只要命中以下任意一点，无需留情，直接低分：**
+1.  **平行下游应用（Wrapper/Application）**：
+    *   例如：“用LLM进行金融报表分析”、“基于RAG的法律文书助手”、“医疗病历结构化”。
+    *   **理由**：这些只是把现有技术用在特定数据上，没有方法论创新。我只要提出技术源头的论文。
+2.  **无关领域**：
+    *   视频理解/生成、纯图像生成/修复、具身智能/机器人、自动驾驶、3D视觉。
+    *   纯NLP的安全/对齐（Safety/Jailbreak）/政治正确，除非涉及“视觉幻觉”消除。
+3.  **小语种**：非中英的特定语言数据集或模型。
+
+### ✅ 关注领域与评分标准
+
+#### 1. DIU 本题 (High Priority) -> [7-10分]
+*   **任务**：DocVQA, Layout Analysis, Table Recognition, VIE/KIE, OCR-free End-to-End。
+*   **趋势**：
+    *   **DeepSeek-OCR 路线**：**Visual Token Compression (视觉压缩)**、Visual Representation Learning。
+    *   **VLM for Doc**：专为文档设计的VLM架构、训练策略或高质量数据集。
+*   *注：DIU领域内即使是传统方法或效率优化，也请保留（给及格分），因为圈子小，不宜漏掉。*
+
+#### 2. 关联领域的“军火库” (Tools & Methodology) -> [6-9分]
+**筛选标准：这篇上游论文提出的方法，能否被迁移来解决DIU的痛点？**
+*   **痛点包括**：OCR幻觉（Hallucination）、细粒度定位（Grounding）、高分辨率处理、复杂逻辑推理。
+*   **有价值的工具**：
+    *   **Inference Scaling / Test-time Compute**：CoT、Search、Verification机制的**源头工作**。
+    *   **VLM Architecture**：能显著提升High-Res输入处理能力或多模态对齐能力的架构改进。
+    *   **Agent / Workflow**：能解决长文档阅读、多步信息检索过程中迷失问题的**Agent架构设计**（而非某个垂类Agent应用）。
+    *   **Intervention / Steering**：推理阶段的干预或引导技术（作为一种可能的工具）。
+
+### ❌ 这是一个发表信息提取任务
+*   **Publication字段**：**仅**允许从 `comment` 字段提取！
+*   **严禁**将 `category`（如 "cs.CV", "Computer Vision and Pattern Recognition"）当作发表信息。
+*   如果 `comment` 为空或未提及会议/期刊，必须返回 "N/A"。
+
+### 📝 打分参考 (0-10)
+*   **9-10 (Must Read)**：DIU的SOTA工作；或者上游领域具有**范式转移（Paradigm Shift）**意义的底层创新（如Visual Token Compression的开山之作，或推理Scaling的新原理）。
+*   **7-8 (Strong)**：扎实的DIU工作；或者能明显看到对DIU有迁移价值的上游新方法（如一种新的VQA去幻觉策略）。
+*   **4-6 (Weak)**：DIU领域的常规灌水；或者虽是上游热点但迁移到文档极其困难的工作。
+*   **0-3 (Reject)**：平行应用、无关领域、小语种。
+
+### ✅ 任务指令
+请根据以上标准评估。
+1.  **Score**: 整数。
+2.  **Title_zh**: 翻译标题。
+3.  **Reason**: **中文**。
+    *   **DIU论文**：简述其针对什么文档任务做了什么改进。
+    *   **上游论文**：**核心必须解释该方法如何迁移到DIU领域**（例如：“该VLM分辨率处理方法可直接用于提升文档细粒度识别”）。
+4.  **Summary**: 中文总结。
+5.  **Keywords**: 3-5个关键词。
+6.  **Publication**: 提取会议/期刊。
+
+论文信息：
+title：{title}
+authors：{authors}
+abstract：{abstract}
+comment：{comment}
+category：{category}
+
+回复请用json格式，必须只返回json，不要返回其他内容：
+"""
+
+# JSON 响应模板
+JSON_RESPONSE_TEMPLATE = """
+{
+  "score": x,
+  "title_zh": "中文标题",
+  "reason": "xxx",
+  "summary": "xxx",
+  "keywords": ["word1", "word2"],
+  "publication": "xxx"
+}
+"""
+
+def clean_json_response(response):
+    start_index = response.find("{")
+    end_index = response.rfind("}") + 1
+    if start_index != -1 and end_index != -1:
+        return response[start_index:end_index]
+    return None
+
+def process_single_paper(client, paper):
+    """处理单篇论文的函数，包含重试机制"""
+    prompt = PROMPT_TEMPLATE.format(
+        title=paper['title'],
+        authors=', '.join(paper['authors']) if isinstance(paper['authors'], list) else paper['authors'],
+        abstract=paper['abstract'],
+        comment=paper.get('comment', ''),
+        category=paper['category'],
+    ) + JSON_RESPONSE_TEMPLATE
+
+    for attempt in range(RETRY_LIMIT):
+        try:
+            completion = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=[
+                    {'role': 'system', 'content': 'You are a critical academic reviewer.'},
+                    {'role': 'user', 'content': prompt}
+                ],
+                temperature=0.2
+            )
+            print(completion)
+            content = completion.choices[0].message.content
+            cleaned_json = clean_json_response(content)
+            
+            if cleaned_json:
+                try:
+                    eval_data = json.loads(cleaned_json)
+                    # 返回评估结果字典
+                    return {
+                        "score": eval_data.get('score', 0),
+                        "title_zh": eval_data.get('title_zh', ''),
+                        "reason": eval_data.get('reason', 'N/A'),
+                        "summary": eval_data.get('summary', 'N/A'),
+                        "keywords": eval_data.get('keywords', []),
+                        "publication": eval_data.get('publication', 'N/A')
+                    }
+                except json.JSONDecodeError:
+                    print(f"JSON解析失败 (Attempt {attempt+1}): {paper['title'][:30]}...")
+            else:
+                print(f"未找到JSON (Attempt {attempt+1}): {paper['title'][:30]}...")
+        
+        except Exception as e:
+            # 只有在最后一次重试失败时才打印错误，避免刷屏
+            if attempt == RETRY_LIMIT - 1:
+                print(f"API调用失败 (Final): {paper['title'][:30]}... Error: {e}")
+            time.sleep(2) # 失败后简单的退避
+
+    # 如果所有重试都失败，返回空结果
+    return None
+
+def main(input_file, output_file):
+    # 初始化客户端 (注意：openai >= 1.0.0 客户端是线程安全的，但为了保险可以在线程内创建，
+    # 不过通常全局共享一个client配合多线程也是OK的，这里为了简单在主线程创建)
+    client = OpenAI(
+        api_key=API_KEY,
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+
+    with open(input_file, 'r') as f:
+        papers = json.load(f)
+    
+    if not papers:
+        print("没有论文需要评估。")
+        return
+
+    print(f"准备评估 {len(papers)} 篇论文，使用 {MAX_WORKERS} 个并发线程...")
+    start_time = time.time()
+    
+    completed_count = 0
+    
+    # 使用 ThreadPoolExecutor 进行并发处理
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        # 提交所有任务
+        # future_to_paper 映射：Future对象 -> paper对象
+        future_to_paper = {executor.submit(process_single_paper, client, paper): paper for paper in papers}
+        
+        for future in concurrent.futures.as_completed(future_to_paper):
+            paper = future_to_paper[future]
+            try:
+                result = future.result()
+                if result:
+                    # 更新 paper 对象
+                    paper.update(result)
+                else:
+                    # 失败也标记一下，防止前端报错
+                    paper['score'] = 0
+                    paper['reason'] = "API Error"
+            except Exception as exc:
+                print(f"线程异常: {exc}")
+            
+            completed_count += 1
+            # 简单的进度打印，每完成 10 篇打印一次
+            if completed_count % 10 == 0:
+                print(f"进度: {completed_count}/{len(papers)} (耗时: {int(time.time() - start_time)}s)", flush=True)
+
+    total_time = time.time() - start_time
+    print(f"评估完成！总耗时: {int(total_time)}秒。平均每篇: {total_time/len(papers):.2f}秒。")
+
+    # 写入输出文件
+    with open(output_file, 'w') as f:
+        json.dump(papers, f, indent=2, ensure_ascii=False)
+
+if __name__ == "__main__":
+    main("target/latest_papers.json", "target/evaluated_papers.json")

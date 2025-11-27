@@ -6,7 +6,7 @@ on:
     branches:
       - main
   schedule:
-    # 改回每天运行！(UTC 0:00 是北京时间 8:00)
+    # 每天 UTC 0:00 运行 (北京时间 8:00)
     - cron: "00 23 * * *" 
 
 jobs:
@@ -42,26 +42,39 @@ jobs:
           chmod +x arxivfeed
 
       - name: Build rss (Fetch daily papers)
-        # 这一步会更新 target/cache.json
         run: ./arxivfeed
 
-      # --- 第二阶段：AI 分析 (仅周日执行) ---
+      # --- 关键修改：判断是否为周日 ---
+      - name: Check Day of Week
+        id: check_day
+        shell: bash
+        run: |
+          # 获取当前星期几 (1-7, 7是周日)
+          WEEKDAY=$(date +%u)
+          echo "Current weekday (UTC): $WEEKDAY"
+          
+          # 判断逻辑：如果是周日(7) 或者 手动触发(workflow_dispatch)，则运行 AI
+          if [ "$WEEKDAY" -eq 7 ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "It is Sunday or Manual Trigger. AI Pipeline will run."
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "Not Sunday. Skipping AI Pipeline."
+          fi
+
+      # --- 第二阶段：AI 分析 (仅符合条件执行) ---
       
       - name: Install dependencies
-        # 只有今天是周日 (7) 才安装依赖和跑脚本
-        if: $(date +%u) -eq 7 || github.event_name == 'workflow_dispatch'
+        if: steps.check_day.outputs.should_run == 'true'
         run: |
           pip install beautifulsoup4
           pip install openai
 
       - name: Run AI Pipeline (Weekly Report)
-        # 只有今天是周日 (7) 或者是手动触发 (workflow_dispatch) 才运行
-        if: $(date +%u) -eq 7 || github.event_name == 'workflow_dispatch'
+        if: steps.check_day.outputs.should_run == 'true'
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
-          # 此时 target/cache.json 已经包含了过去 8 天的数据（由 arxivfeed 累积）
-          # extract_papers_v2 需要确保逻辑是提取 cache.json 中所有的论文，而不仅仅是当天的
           python3 extract_papers_v2.py 
           python3 evaluate_papers_v2.py
           python3 inject_html_v2.py

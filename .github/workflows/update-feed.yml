@@ -76,7 +76,7 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
           python3 -u extract_papers_v2.py 
-          python3 -u evaluate_papers_v2.5.py
+          python3 -u evaluate_papers_v2.1.py
           python3 -u inject_html_v2.py
 
       # --- 第三阶段：部署 ---

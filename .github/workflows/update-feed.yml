@@ -18,31 +18,31 @@ jobs:
       
       # --- 第一阶段：基础数据抓取 (每天都做) ---
       
-      # - name: Download ArxivFeed
-      #   env:
-      #     GITHUB_PAT: ${{ github.token }}
-      #     REPO: "NotCraft/ArxivFeed"
-      #     VERSION: "latest"
-      #     MATCH: "arxivfeed-.+-x86_64-unknown-linux-musl.tar.gz$"
-      #     RENAME: "arxivfeed.tgz"
-      #   shell: bash
-      #   run: |
-      #     curl -sL --fail \
-      #       -H "Accept: application/vnd.github.v3+json" \
-      #       -H "Authorization: Bearer ${GITHUB_PAT}" \
-      #         "https://api.github.com/repos/${REPO}/releases/${VERSION}" \
-      #         | jq -r ".assets | .[] | select(.name | test(\"${MATCH}\")) | .url" \
-      #         | tee asset.url
-      #     curl -sL --fail \
-      #       -H "Accept: application/octet-stream" \
-      #       -H "Authorization: Bearer ${GITHUB_PAT}" \
-      #         -o "${RENAME}" \
-      #         "$(cat asset.url)"
-      #     tar -zxvf arxivfeed.tgz --strip-components 1 $(tar tf arxivfeed.tgz | grep /arxivfeed)
-      #     chmod +x arxivfeed
+      - name: Download ArxivFeed
+        env:
+          GITHUB_PAT: ${{ github.token }}
+          REPO: "NotCraft/ArxivFeed"
+          VERSION: "latest"
+          MATCH: "arxivfeed-.+-x86_64-unknown-linux-musl.tar.gz$"
+          RENAME: "arxivfeed.tgz"
+        shell: bash
+        run: |
+          curl -sL --fail \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${GITHUB_PAT}" \
+              "https://api.github.com/repos/${REPO}/releases/${VERSION}" \
+              | jq -r ".assets | .[] | select(.name | test(\"${MATCH}\")) | .url" \
+              | tee asset.url
+          curl -sL --fail \
+            -H "Accept: application/octet-stream" \
+            -H "Authorization: Bearer ${GITHUB_PAT}" \
+              -o "${RENAME}" \
+              "$(cat asset.url)"
+          tar -zxvf arxivfeed.tgz --strip-components 1 $(tar tf arxivfeed.tgz | grep /arxivfeed)
+          chmod +x arxivfeed
 
-      # - name: Build rss (Fetch daily papers)
-      #   run: ./arxivfeed
+      - name: Build rss (Fetch daily papers)
+        run: ./arxivfeed
 
       # --- 关键修改：判断是否为周日 ---
       - name: Check Day of Week

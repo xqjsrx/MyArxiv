@@ -6,7 +6,6 @@ on:
     branches:
       - main
   schedule:
-    # 每天 UTC 0:00 运行 (北京时间 8:00)
     - cron: "00 23 * * *" 
 
 jobs:
@@ -16,8 +15,20 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      # --- 第一阶段：基础数据抓取 (每天都做) ---
-      
+      # 1. 准备环境 (提前到前面，因为 python 脚本需要依赖)
+      - name: Install dependencies
+        run: |
+          pip install beautifulsoup4
+          pip install openai requests
+
+      # 2. 【关键】备份当前线上的网页 (为了非周日时恢复 AI 报告)
+      - name: Backup existing index.html
+        run: |
+          # 替换成你自己的 Github Pages URL
+          curl -L "https://xqjsrx.github.io/MyArxiv/index.html" -o backup.html || true
+          echo "Backup downloaded."
+
+      # 3. 下载并运行 ArxivFeed (生成今日新数据)
       - name: Download ArxivFeed
         env:
           GITHUB_PAT: ${{ github.token }}
@@ -41,46 +52,41 @@ jobs:
           tar -zxvf arxivfeed.tgz --strip-components 1 $(tar tf arxivfeed.tgz | grep /arxivfeed)
           chmod +x arxivfeed
 
-      - name: Build rss (Fetch daily papers)
+      - name: Build rss (Update cache and raw html)
         run: ./arxivfeed
 
-      # --- 关键修改：判断是否为周日 ---
+      # 4. 判断日期
       - name: Check Day of Week
         id: check_day
         shell: bash
         run: |
-          # 获取当前星期几 (1-7, 7是周日)
           WEEKDAY=$(date +%u)
-          echo "Current weekday (UTC): $WEEKDAY"
-          
-          # 判断逻辑：如果是周日(7) 或者 手动触发(workflow_dispatch)，则运行 AI
+          echo "Current weekday: $WEEKDAY"
           if [ "$WEEKDAY" -eq 7 ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "It is Sunday or Manual Trigger. AI Pipeline will run."
+            echo "should_gen_ai=true" >> $GITHUB_OUTPUT
           else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "Not Sunday. Skipping AI Pipeline."
+            echo "should_gen_ai=false" >> $GITHUB_OUTPUT
           fi
 
-      # --- 第二阶段：AI 分析 (仅符合条件执行) ---
-      
-      - name: Install dependencies
-        if: steps.check_day.outputs.should_run == 'true'
-        run: |
-          pip install beautifulsoup4
-          pip install openai
-
-      - name: Run AI Pipeline (Weekly Report)
-        if: steps.check_day.outputs.should_run == 'true'
+      # 5A. 情况一：周日 -> 生成新的 AI 报告
+      - name: [Sunday] Generate New AI Report
+        if: steps.check_day.outputs.should_gen_ai == 'true'
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
+          echo "Sunday detected. Running AI evaluation..."
           python3 -u extract_papers_v2.py 
           python3 -u evaluate_papers_v2.1.py
           python3 -u inject_html_v2.py
 
-      # --- 第三阶段：部署 ---
+      # 5B. 情况二：非周日 -> 恢复旧的 AI 报告
+      - name: [Mon-Sat] Restore Old AI Report
+        if: steps.check_day.outputs.should_gen_ai == 'false'
+        run: |
+          echo "Not Sunday. Restoring AI report from backup..."
+          python3 restore_report.py
 
+      # 6. 部署 (总是执行，确保 cache.json 更新)
       - name: List files in repository
         run: ls -R
 

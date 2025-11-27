@@ -78,11 +78,11 @@ def process_cache_file(cache_file, output_file):
 
     print(f"Total papers after deduplication: {len(merged_data)}")
 
-    # ================= DEBUG LIMIT =================
-    # 限制为前 20 篇，用于快速测试 (正式运行时请注释掉)
-    merged_data = merged_data[:20]
-    print(f"DEBUG MODE: Only processing top {len(merged_data)} papers.")
-    # ===============================================
+    # # ================= DEBUG LIMIT =================
+    # # 限制为前 20 篇，用于快速测试 (正式运行时请注释掉)
+    # merged_data = merged_data[:20]
+    # print(f"DEBUG MODE: Only processing top {len(merged_data)} papers.")
+    # # ===============================================
 
     # 写入输出文件
     with open(output_file, 'w') as f:

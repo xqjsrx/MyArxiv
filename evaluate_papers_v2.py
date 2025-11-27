@@ -7,49 +7,61 @@ API_KEY = os.getenv("API_KEY")
 
 # 自定义的提示模板
 PROMPT_TEMPLATE = """
-我是一名人工智能方向的研究生，专注于文档图像理解（Document Image Understanding, DIU）。
-请扮演我的科研助手，严格根据我的研究兴趣对今天的Arxiv论文进行筛选、打分和总结。
+我是一名人工智能方向的研究生，核心研究领域是 **文档图像理解（DIU / DocVQA）**。
+我的目标是利用 **VLM (Multimodal LLM)** 技术解决文档理解中的核心痛点（如OCR幻觉、密集文本、复杂排版、长文档推理）。
 
-### 1. 核心研究领域：DIU (Document Image Understanding)
-**对于属于DIU领域的论文，请放宽筛选标准，只要相关度高都给予及格以上分数。**
-- **关注任务**：DocVQA、Information Extraction (VIE/KIE)、Layout Analysis、Table Recognition、OCR。
-- **接受范围**：
-    - 即使是传统的OCR流水线、或者侧重效率优化（Efficiency）的工作，**也不要排除**，给中等分数即可（因为DIU论文较少，我需要保持关注）。
-    - 重点关注：基于VLM的、OCR-free的、端到端的文档理解新工作（给高分）。
-- **唯一排除**：**小语种**（非中英）的特定文档数据集或模型（如泰语、越南语等），此类直接打低分。
+请担任一名**挑剔的审稿人**，帮我筛选论文。
+**原则：不拘泥于特定技术路线（如必须是Agent或必须是Intervention），只要能提升DIU性能的底层方法都值得关注；但坚决抵制无营养的“平行应用”。**
 
-### 2. 关联领域：LLM / VLM / Agent / Inference Scaling
-**对于这些上游或平行领域，我的目的是“寻找工具”，筛选标准需严格。**
-我主要寻找**能迁移应用到DIU任务中，提升模型性能（Performance）的方法**，而非提升速度。
-- **寻找的技术特性（High Priority）**：
-    - **推理阶段干预（Inference-time intervention）**：类似Attention intervention、Logit manipulation、Decoding strategy等。我将其视为提升DIU性能的潜在工具。
-    - **Inference Scaling / Reasoning**：CoT、ToT、Search-based reasoning。**关键看它能否帮助解决视觉文档中的复杂逻辑或幻觉问题**。
-    - **Agent**：能处理长文档、多步工具调用的Agent架构。
-- **排除项（Low Priority）**：
-    - 关联领域中纯粹的效率优化（如纯模型量化、剪枝）。
-    - 关联领域中过于传统的微调方法或与视觉完全无关的纯NLP理论。
+### 🛑 负面清单（直接打0-3分）
+**只要命中以下任意一点，无需留情，直接低分：**
+1.  **平行下游应用（Wrapper/Application）**：
+    *   例如：“用LLM进行金融报表分析”、“基于RAG的法律文书助手”、“医疗病历结构化”。
+    *   **理由**：这些只是把现有技术用在特定数据上，没有方法论创新。我只要提出技术源头的论文。
+2.  **无关领域**：
+    *   视频理解/生成、纯图像生成/修复、具身智能/机器人、自动驾驶、3D视觉。
+    *   纯NLP的安全/对齐（Safety/Jailbreak）/政治正确，除非涉及“视觉幻觉”消除。
+3.  **小语种**：非中英的特定语言数据集或模型。
 
-### 📝 打分标准 (0-10分)
-- **9-10分 (Must Read)**：
-    - **DIU领域**：SOTA级别的VLM文档理解模型、解决了OCR幻觉/细粒度识别/Grounding痛点的DIU工作。
-    - **关联领域**：提出了非常新颖的推理阶段干预方法、或极具启发性的多模态Inference Scaling技术，且极大概率能迁移到文档任务。
-- **6-8分 (Relevant)**：
-    - **DIU领域**：大多数主流DIU工作，包括新数据集、传统方法的改进、效率优化工作。
-    - **关联领域**：与视觉多模态紧密相关的VLM改进、Agent框架。
-- **3-5分 (Borderline)**：
-    - 比较边缘的CV/NLP工作，迁移到文档领域的可能性较低或成本较高。
-- **0-2分 (Ignore)**：
-    - 小语种工作。
-    - 与文档理解毫无关系的纯理论或无关应用（如视频生成、纯自动驾驶、蛋白质折叠）。
+### ✅ 关注领域与评分标准
+
+#### 1. DIU 本题 (High Priority) -> [7-10分]
+*   **任务**：DocVQA, Layout Analysis, Table Recognition, VIE/KIE, OCR-free End-to-End。
+*   **趋势**：
+    *   **DeepSeek-OCR 路线**：**Visual Token Compression (视觉压缩)**、Visual Representation Learning。
+    *   **VLM for Doc**：专为文档设计的VLM架构、训练策略或高质量数据集。
+*   *注：DIU领域内即使是传统方法或效率优化，也请保留（给及格分），因为圈子小，不宜漏掉。*
+
+#### 2. 关联领域的“军火库” (Tools & Methodology) -> [6-9分]
+**筛选标准：这篇上游论文提出的方法，能否被迁移来解决DIU的痛点？**
+*   **痛点包括**：OCR幻觉（Hallucination）、细粒度定位（Grounding）、高分辨率处理、复杂逻辑推理。
+*   **有价值的工具**：
+    *   **Inference Scaling / Test-time Compute**：CoT、Search、Verification机制的**源头工作**。
+    *   **VLM Architecture**：能显著提升High-Res输入处理能力或多模态对齐能力的架构改进。
+    *   **Agent / Workflow**：能解决长文档阅读、多步信息检索过程中迷失问题的**Agent架构设计**（而非某个垂类Agent应用）。
+    *   **Intervention / Steering**：推理阶段的干预或引导技术（作为一种可能的工具）。
+
+### ❌ 这是一个发表信息提取任务
+*   **Publication字段**：**仅**允许从 `comment` 字段提取！
+*   **严禁**将 `category`（如 "cs.CV", "Computer Vision and Pattern Recognition"）当作发表信息。
+*   如果 `comment` 为空或未提及会议/期刊，必须返回 "N/A"。
+
+### 📝 打分参考 (0-10)
+*   **9-10 (Must Read)**：DIU的SOTA工作；或者上游领域具有**范式转移（Paradigm Shift）**意义的底层创新（如Visual Token Compression的开山之作，或推理Scaling的新原理）。
+*   **7-8 (Strong)**：扎实的DIU工作；或者能明显看到对DIU有迁移价值的上游新方法（如一种新的VQA去幻觉策略）。
+*   **4-6 (Weak)**：DIU领域的常规灌水；或者虽是上游热点但迁移到文档极其困难的工作。
+*   **0-3 (Reject)**：平行应用、无关领域、小语种。
 
 ### ✅ 任务指令
-请根据以上信息，对下面这篇论文进行评估。
-1. **Score**: 给出整数评分。
-2. **Title_zh**: 将标题翻译为通顺的中文。
-3. **Reason**: 用**中文**简述打分理由。如果是DIU论文，指出其任务；如果是关联领域论文，**必须指出其方法论对DIU有何潜在借鉴意义**（如：“此推理干预方法可用于减少OCR幻觉”）。
-4. **Summary**: 中文总结核心贡献。
-5. **Keywords**: 3-5个中文关键词。
-6. **Publication**: 提取会议/期刊（如CVPR, ACL, ICLR），无则填"N/A"。
+请根据以上标准评估。
+1.  **Score**: 整数。
+2.  **Title_zh**: 翻译标题。
+3.  **Reason**: **中文**。
+    *   **DIU论文**：简述其针对什么文档任务做了什么改进。
+    *   **上游论文**：**核心必须解释该方法如何迁移到DIU领域**（例如：“该VLM分辨率处理方法可直接用于提升文档细粒度识别”）。
+4.  **Summary**: 中文总结。
+5.  **Keywords**: 3-5个关键词。
+6.  **Publication**: 提取会议/期刊。
 
 论文信息：
 title：{title}

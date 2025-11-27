@@ -98,6 +98,7 @@ def call_qwen_api(prompt):
                 {'role': 'user', 'content': prompt}
             ]
         )
+        print(completion)
         return completion.choices[0].message.content
     except Exception as e:
         print(f"Error: {e}")

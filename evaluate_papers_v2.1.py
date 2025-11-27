@@ -10,7 +10,7 @@ API_KEY = os.getenv("API_KEY")
 
 # ================= 配置区域 =================
 MODEL_NAME = "qwen-plus"
-MAX_WORKERS = 10  # 并发线程数 (Qwen-plus 的 QPS 限制通常允许 5-10 并发)
+MAX_WORKERS = 20  # 并发线程数 (Qwen-plus 的 QPS 限制通常允许 5-10 并发)
 RETRY_LIMIT = 3   # 失败重试次数
 
 # ================= 提示词模板 (保持不变) =================

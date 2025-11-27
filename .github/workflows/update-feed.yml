@@ -6,12 +6,8 @@ on:
     branches:
       - main
   schedule:
-    # Adjust refresh schedule here. By default, it runs once per day.
-    # Syntax reference: https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule
-    # Recommended tool: https://crontab.guru/
-    # - cron: "00 23 * * *"
-    # 每周日 UTC 0:00 运行 (北京时间周日上午8:00)
-    - cron: "0 0 * * 0"
+    # 改回每天运行！(UTC 0:00 是北京时间 8:00)
+    - cron: "00 23 * * *" 
 
 jobs:
   build:
@@ -19,6 +15,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      
+      # --- 第一阶段：基础数据抓取 (每天都做) ---
+      
       - name: Download ArxivFeed
         env:
           GITHUB_PAT: ${{ github.token }}
@@ -41,43 +40,34 @@ jobs:
               "$(cat asset.url)"
           tar -zxvf arxivfeed.tgz --strip-components 1 $(tar tf arxivfeed.tgz | grep /arxivfeed)
           chmod +x arxivfeed
-      - name: Build rss
+
+      - name: Build rss (Fetch daily papers)
+        # 这一步会更新 target/cache.json
         run: ./arxivfeed
-        
+
+      # --- 第二阶段：AI 分析 (仅周日执行) ---
+      
       - name: Install dependencies
+        # 只有今天是周日 (7) 才安装依赖和跑脚本
+        if: $(date +%u) -eq 7 || github.event_name == 'workflow_dispatch'
         run: |
           pip install beautifulsoup4
           pip install openai
-      
-      # v1  
-      # - name: Extract paper information
-      #   run: |
-      #     python3 extract_papers.py
-      # - name: Evaluate papers
-      #   env:
-      #     API_KEY: ${{ secrets.API_KEY }}
-      #   run: |
-      #     python3 evaluate_papers.py
-      # - name: Inject html
-      #   run: |
-      #     python3 inject_html.py
-      # - name: Sort Papers
-      #   run: |
-      #     python3 sort_papers.py
 
-      # v2
-      - name: Extract paper information
-        run: |
-          python3 extract_papers_v2.py
-      - name: Evaluate papers
+      - name: Run AI Pipeline (Weekly Report)
+        # 只有今天是周日 (7) 或者是手动触发 (workflow_dispatch) 才运行
+        if: $(date +%u) -eq 7 || github.event_name == 'workflow_dispatch'
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: |
+          # 此时 target/cache.json 已经包含了过去 8 天的数据（由 arxivfeed 累积）
+          # extract_papers_v2 需要确保逻辑是提取 cache.json 中所有的论文，而不仅仅是当天的
+          python3 extract_papers_v2.py 
           python3 evaluate_papers_v2.py
-      - name: Inject html
-        run: |
           python3 inject_html_v2.py
-          
+
+      # --- 第三阶段：部署 ---
+
       - name: List files in repository
         run: ls -R
 
@@ -87,3 +77,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target
           force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'

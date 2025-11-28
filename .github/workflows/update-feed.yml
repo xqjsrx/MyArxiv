@@ -69,7 +69,7 @@ jobs:
           fi
 
       # 5A. 情况一：周日 -> 生成新的 AI 报告
-      - name: Sunday Generate New AI Report
+      - name: (Sunday) Generate New AI Report
         if: steps.check_day.outputs.should_gen_ai == 'true'
         env:
           API_KEY: ${{ secrets.API_KEY }}
@@ -80,7 +80,7 @@ jobs:
           python3 -u inject_html_v2.py
 
       # 5B. 情况二：非周日 -> 恢复旧的 AI 报告
-      - name: Mon-Sat Restore Old AI Report
+      - name: (Mon-Sat) Restore Old AI Report
         if: steps.check_day.outputs.should_gen_ai == 'false'
         run: |
           echo "Not Sunday. Restoring AI report from backup..."

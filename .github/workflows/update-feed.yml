@@ -56,13 +56,14 @@ jobs:
         run: ./arxivfeed
 
       # 4. 判断日期
+      # backup: if [ "$WEEKDAY" -eq 7 ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
       - name: Check Day of Week
         id: check_day
         shell: bash
         run: |
           WEEKDAY=$(date +%u)
           echo "Current weekday: $WEEKDAY"
-          if [ "$WEEKDAY" -eq 7 ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          if [ "$WEEKDAY" -eq 7 ]; then
             echo "should_gen_ai=true" >> $GITHUB_OUTPUT
           else
             echo "should_gen_ai=false" >> $GITHUB_OUTPUT
